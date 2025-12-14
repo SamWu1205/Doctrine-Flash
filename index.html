@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>準則快憶通 (Cloud)</title>
     <style>
-        /* --- 核心樣式 --- */
+        /* --- 核心樣式：暗黑模式 --- */
         :root {
             --bg-color: #121212;
             --surface-color: #1e1e1e;
@@ -350,28 +350,25 @@
         // 1. Firebase 設定區
         // =========================================================
         
-        // --- 請在此處貼上您的 Firebase Config ---
-        // 範例： const firebaseConfig = { apiKey: "xxx", ... };
- const firebaseConfig = {
-  apiKey: "AIzaSyC7MgXLY7SwH-gJW71d1jgpPmJwr--I6Mg",
-  authDomain: "doctrine-flash.firebaseapp.com",
-  projectId: "doctrine-flash",
-  storageBucket: "doctrine-flash.firebasestorage.app",
-  messagingSenderId: "433425348870",
-  appId: "1:433425348870:web:3fd60e44e18d27e1ab8687",
-  measurementId: "G-WE3QHJD139"
-};
+        const firebaseConfig = {
+            apiKey: "AIzaSyC7MgXLY7SwH-gJW71d1jgpPmJwr--I6Mg",
+            authDomain: "doctrine-flash.firebaseapp.com",
+            projectId: "doctrine-flash",
+            storageBucket: "doctrine-flash.firebasestorage.app",
+            messagingSenderId: "433425348870",
+            appId: "1:433425348870:web:3fd60e44e18d27e1ab8687",
+            measurementId: "G-WE3QHJD139"
+        };
         // =========================================================
 
         let app, auth, db;
         
-        // 嘗試初始化
         try {
             app = initializeApp(firebaseConfig);
             auth = getAuth(app);
             db = getFirestore(app);
         } catch (e) {
-            console.error("Firebase config missing or invalid");
+            console.error("Firebase config error:", e);
         }
 
         // 2. 狀態變數
@@ -392,13 +389,13 @@
         setTimeout(() => {
             if (!loader.classList.contains('hidden')) {
                 forceStartBtn.classList.remove('hidden');
-                loaderMsg.innerText = "請檢查 Firebase 設定是否正確...";
+                loaderMsg.innerText = "連線過久，請檢查 Firebase 設定...";
             }
         }, 5000);
 
         window.forceStart = () => {
             loader.classList.add('hidden');
-            if (!auth) alert("未偵測到正確的 Firebase 設定，將無法存檔。");
+            if (!auth) alert("無法連線至資料庫。");
         };
 
         function updateStatus(online) {
@@ -409,7 +406,7 @@
         if (auth) {
             signInAnonymously(auth).catch(e => {
                 console.error("Auth Error:", e);
-                loaderMsg.innerText = "登入失敗: " + e.message;
+                loaderMsg.innerText = "登入失敗 (請確認 Authentication 已啟用匿名): " + e.message;
             });
 
             onAuthStateChanged(auth, async (user) => {
@@ -430,7 +427,7 @@
                         }
                     } catch (e) {
                         console.error("Data Load Error:", e);
-                        loaderMsg.innerText = "讀取失敗";
+                        loaderMsg.innerText = "讀取失敗 (請確認 Firestore 已啟用): " + e.message;
                         forceStartBtn.classList.remove('hidden');
                     }
                 } else {
