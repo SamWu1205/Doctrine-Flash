@@ -3,252 +3,653 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>準則快憶通 (Doctrine Flash)</title>
+    <title>準則快憶通 (Cloud Ver.)</title>
     <style>
-        /* --- 核心樣式：暗黑模式與行動優先 --- */
+        /* --- 核心樣式 --- */
+        :root {
+            --bg-color: #121212;
+            --surface-color: #1e1e1e;
+            --primary-color: #4caf50;
+            --text-main: #e0e0e0;
+            --text-sub: #aaaaaa;
+            --danger-color: #e57373;
+        }
+
         body {
-            background-color: #121212; /* 深灰背景 */
-            color: #e0e0e0; /* 淺灰文字，對比度適中 */
+            background-color: var(--bg-color);
+            color: var(--text-main);
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             margin: 0;
-            padding: 20px;
+            padding: 0;
             display: flex;
             flex-direction: column;
             height: 100vh;
-            box-sizing: border-box;
+            overflow: hidden;
         }
 
-        /* 導航列 */
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            border-bottom: 1px solid #333;
-            padding-bottom: 10px;
-        }
-        .progress { color: #4caf50; font-weight: bold; }
-
-        /* 卡片區域 */
-        .card-container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .question-box {
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: #81c784; /* 提問用亮綠色 */
-        }
-
-        .answer-box {
-            font-size: 1.1rem;
-            line-height: 1.8;
-            background-color: #1e1e1e;
-            padding: 15px;
-            border-radius: 8px;
-            min-height: 150px;
-            position: relative;
-        }
-
-        /* 挖空互動設計 */
-        .cloze-word {
-            border-bottom: 2px solid #555;
-            padding: 0 4px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .cloze-word.hidden {
-            background-color: #333;
-            color: #333; /* 文字隱藏 */
-            user-select: none;
-        }
-        .cloze-word.revealed {
-            background-color: transparent;
-            color: #fff;
-            border-bottom-color: #4caf50;
-        }
-
-        /* 底部按鈕區 (SRS) */
-        .action-area {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 10px;
-            margin-top: auto;
-        }
-
+        /* 通用按鈕樣式 */
         .btn {
-            padding: 15px 0;
             border: none;
             border-radius: 8px;
             font-size: 1rem;
             font-weight: bold;
             color: #fff;
             cursor: pointer;
+            padding: 10px 15px;
+            transition: opacity 0.2s;
         }
-        .btn-fail { background-color: #e57373; }
-        .btn-hard { background-color: #ffb74d; color: #333; }
-        .btn-easy { background-color: #81c784; color: #333; }
+        .btn:active { opacity: 0.8; }
+        .btn-icon { background: none; color: var(--text-main); font-size: 1.5rem; padding: 5px; }
+        .btn-primary { background-color: var(--primary-color); color: #333; }
+        .btn-danger { background-color: var(--danger-color); }
+        .btn-outline { background: transparent; border: 1px solid #555; color: var(--text-main); }
+        .btn-sm { font-size: 0.85rem; padding: 5px 10px; }
+
+        /* --- 導航列 --- */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background-color: var(--surface-color);
+            border-bottom: 1px solid #333;
+            z-index: 10;
+        }
+        .header-title { font-size: 1.1rem; font-weight: bold; }
+        .progress { color: var(--primary-color); font-weight: bold; font-size: 0.9rem; }
+
+        /* --- 主內容區 --- */
+        .main-container {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .question-box {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #81c784;
+            flex: 1;
+        }
+
+        .answer-box {
+            font-size: 1.15rem;
+            line-height: 1.8;
+            background-color: var(--surface-color);
+            padding: 20px;
+            border-radius: 12px;
+            min-height: 150px;
+            position: relative;
+            white-space: pre-wrap;
+        }
+
+        /* 挖空互動 */
+        .cloze-word {
+            border-bottom: 2px solid #555;
+            padding: 0 2px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-radius: 3px;
+        }
+        .cloze-word.hidden {
+            background-color: #333;
+            color: #333;
+            user-select: none;
+        }
+        .cloze-word.revealed {
+            background-color: rgba(76, 175, 80, 0.1);
+            color: #fff;
+            border-bottom-color: var(--primary-color);
+        }
+
+        /* 底部操作區 */
+        .footer-actions {
+            padding: 20px;
+            background-color: var(--bg-color);
+            border-top: 1px solid #333;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+        }
+        .btn-act-fail { background-color: #e57373; }
+        .btn-act-hard { background-color: #ffb74d; color: #333; }
+        .btn-act-easy { background-color: #81c784; color: #333; }
+
+        /* --- 側邊選單 --- */
+        .sidebar-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 90;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .sidebar {
+            position: fixed;
+            top: 0; left: 0; width: 80%; max-width: 300px; height: 100%;
+            background: var(--surface-color);
+            z-index: 100;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease-out;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid #333;
+        }
+        .sidebar.active { transform: translateX(0); }
+        .sidebar-overlay.active { display: block; opacity: 1; }
         
-        /* 匯入區 (預設隱藏) */
-        #importer-screen {
-            display: none; /* 切換用 */
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .bank-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+        .bank-item {
+            padding: 15px;
+            margin-bottom: 8px;
+            background: #2a2a2a;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .bank-item.active { border: 1px solid var(--primary-color); background: #253325; }
+        .bank-item:hover { background: #333; }
+        .bank-info h4 { margin: 0 0 5px 0; font-size: 1rem; color: #fff; }
+        .bank-info p { margin: 0; font-size: 0.8rem; color: var(--text-sub); }
+
+        /* --- 彈出視窗 --- */
+        .modal {
+            display: none;
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             background-color: #121212;
+            z-index: 110;
             padding: 20px;
             box-sizing: border-box;
-            z-index: 100;
+            flex-direction: column;
         }
-        textarea {
+        .modal.active { display: flex; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; color: var(--text-sub); }
+        input[type="text"], textarea {
             width: 100%;
-            height: 200px;
-            background: #1e1e1e;
+            background: #2a2a2a;
+            border: 1px solid #444;
             color: #fff;
-            border: 1px solid #333;
-            margin-bottom: 20px;
+            padding: 10px;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 1rem;
         }
+        textarea { height: 120px; resize: vertical; }
+        
+        /* 載入中遮罩 */
+        #loader {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+            flex-direction: column;
+            transition: opacity 0.5s;
+        }
+        .hidden { display: none !important; opacity: 0; }
     </style>
 </head>
 <body>
 
-    <div id="study-screen">
-        <div class="header">
-            <button onclick="toggleImporter()" style="background:none; border:1px solid #555; color:#fff; padding:5px;">☰ 選單/匯入</button>
-            <span class="progress">進度 <span id="current-idx">1</span>/<span id="total-count">0</span></span>
-        </div>
+    <!-- 載入動畫 -->
+    <div id="loader">
+        <div style="font-size: 2rem; margin-bottom: 10px;">⏳</div>
+        <div id="loader-msg">資料同步中...</div>
+    </div>
 
-        <div class="card-container">
+    <!-- 側邊選單 -->
+    <div class="sidebar-overlay" onclick="toggleSidebar(false)"></div>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h3 style="margin:0">我的題庫</h3>
+            <button class="btn btn-sm btn-outline" onclick="toggleSidebar(false)">✕</button>
+        </div>
+        <div class="bank-list" id="bank-list-container">
+            <!-- JS 動態生成 -->
+        </div>
+        <div style="padding: 15px; border-top: 1px solid #333;">
+            <button class="btn btn-primary" style="width:100%" onclick="openImportModal()">＋ 新增/匯入題庫</button>
+        </div>
+    </div>
+
+    <!-- 主畫面 -->
+    <div class="header">
+        <button class="btn-icon" onclick="toggleSidebar(true)">☰</button>
+        <div class="header-title" id="current-bank-title">尚未選擇題庫</div>
+        <div class="progress"><span id="current-idx">0</span> / <span id="total-count">0</span></div>
+    </div>
+
+    <div class="main-container">
+        <div class="question-header">
             <div class="question-box" id="question-text">
-                (請先點擊選單匯入題庫)
+                請點擊左上角選單匯入或選擇題庫。
             </div>
-            
-            <div class="answer-box" id="answer-text">
-                </div>
-            
-            <div style="text-align: center; margin-top:10px;">
-                <button onclick="toggleMaskLevel()" class="btn" style="background:#333; font-size:0.9rem; padding:8px 20px;">
-                    👁️ 切換遮罩等級 (Lv1/Lv2)
-                </button>
-            </div>
+            <button class="btn btn-sm btn-outline" onclick="openEditModal()" style="margin-left: 10px; white-space: nowrap;">
+                ✏️ 修正
+            </button>
         </div>
-
-        <div class="action-area">
-            <button class="btn btn-fail" onclick="nextCard()">忘記<br><span style="font-size:0.7rem">1分後</span></button>
-            <button class="btn btn-hard" onclick="nextCard()">模糊<br><span style="font-size:0.7rem">10分後</span></button>
-            <button class="btn btn-easy" onclick="nextCard()">簡單<br><span style="font-size:0.7rem">4天後</span></button>
+        
+        <div class="answer-box" id="answer-text"></div>
+        
+        <div style="text-align: center;">
+            <button onclick="toggleMaskLevel()" class="btn btn-sm" style="background:#333; border: 1px solid #555;">
+                👁️ 切換遮罩 (Lv1/Lv2)
+            </button>
         </div>
     </div>
 
-    <div id="importer-screen">
-        <h2>匯入 Line 記事本</h2>
-        <p style="color:#aaa; font-size:0.9rem">格式範例：<br>Q: 衛哨一般守則?<br>A: 服裝整齊，配件光亮...</p>
-        <textarea id="import-input" placeholder="請在此貼上文字..."></textarea>
-        <button class="btn btn-easy" style="width:100%" onclick="processImport()">轉換並開始刷題</button>
-        <button class="btn" style="width:100%; background:none; margin-top:10px;" onclick="toggleImporter()">取消</button>
+    <div class="footer-actions">
+        <button class="btn btn-act-fail" onclick="handleRate('fail')">忘記<br><span style="font-size:0.7rem">重來</span></button>
+        <button class="btn btn-act-hard" onclick="handleRate('hard')">模糊<br><span style="font-size:0.7rem">10分後</span></button>
+        <button class="btn btn-act-easy" onclick="handleRate('easy')">簡單<br><span style="font-size:0.7rem">Pass</span></button>
     </div>
 
-    <script>
-        // --- 1. 資料結構與狀態 ---
+    <!-- 匯入視窗 -->
+    <div id="modal-import" class="modal">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <h2>匯入新題庫</h2>
+            <button class="btn btn-sm btn-outline" onclick="closeModal('modal-import')">取消</button>
+        </div>
+        
+        <div class="form-group">
+            <label>題庫名稱 (例如：衛哨守則)</label>
+            <input type="text" id="import-title" placeholder="輸入名稱...">
+        </div>
+
+        <div class="form-group" style="flex:1; display:flex; flex-direction:column;">
+            <label>題目內容 (Q: ... A: ...)</label>
+            <textarea id="import-content" style="flex:1; height:100%;" placeholder="Q: 題目...&#10;A: 答案..."></textarea>
+        </div>
+        
+        <div style="margin-top:auto;">
+            <button class="btn btn-primary" style="width:100%" onclick="processImport()">儲存並開始</button>
+        </div>
+    </div>
+
+    <!-- 編輯題目視窗 -->
+    <div id="modal-edit" class="modal">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <h2>修正題目</h2>
+            <button class="btn btn-sm btn-outline" onclick="closeModal('modal-edit')">取消</button>
+        </div>
+        
+        <div class="form-group">
+            <label>題目 (Q)</label>
+            <textarea id="edit-q" style="height: 80px;"></textarea>
+        </div>
+        <div class="form-group">
+            <label>答案 (A)</label>
+            <textarea id="edit-a" style="height: 150px;"></textarea>
+        </div>
+        
+        <button class="btn btn-primary" style="width:100%" onclick="saveEdit()">儲存修正</button>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+        import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
+        // 1. 初始化 Firebase
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'doctrine-flash-v2';
+
+        // 2. 狀態變數
+        let currentUser = null;
+        let currentBankId = null;
         let cards = [];
         let currentIndex = 0;
-        let maskLevel = 2; // 預設開啟遮罩
+        let maskLevel = 2;
+        let allBanks = []; 
 
-        // --- 2. 核心邏輯：Regex 匯入器 ---
-        function processImport() {
-            const text = document.getElementById('import-input').value;
-            // Regex 解析：支援 Q:/A: 或 問:/答: 的格式
-            // 說明：捕捉 Q 開頭到換行，接著捕捉 A 到下一個 Q 之前的所有內容
-            const regex = /(?:Q:|問：|題目：)(.*?)\n(?:A:|答：|答案：)([\s\S]*?)(?=(?:Q:|問：|題目：|$))/gi;
-            
-            let match;
-            cards = [];
-            while ((match = regex.exec(text)) !== null) {
-                cards.push({
-                    q: match[1].trim(),
-                    a: match[2].trim()
-                });
+        const loader = document.getElementById('loader');
+        const loaderMsg = document.getElementById('loader-msg');
+
+        // --- 強制解鎖計時器 (防止卡死) ---
+        const forceUnlock = setTimeout(() => {
+            if (!loader.classList.contains('hidden')) {
+                console.warn("Force hiding loader due to timeout");
+                loader.classList.add('hidden');
+                if (!currentUser) {
+                    // 若超時仍未登入，切換為離線/演示模式
+                    console.log("Switching to offline/demo mode");
+                    loadDemo();
+                }
             }
+        }, 5000); // 5秒後強制解鎖
 
-            if (cards.length > 0) {
-                document.getElementById('total-count').innerText = cards.length;
-                currentIndex = 0;
-                renderCard();
-                toggleImporter(); // 關閉匯入頁
-            } else {
-                alert("無法識別格式，請確認是否有 Q: 和 A: 標記");
+        // 3. 認證流程
+        const initAuth = async () => {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (error) {
+                console.error("Auth Error:", error);
+                // 認證失敗也嘗試匿名登入
+                try { await signInAnonymously(auth); } catch(e) { console.error("Anon Auth Failed", e); }
+            }
+        };
+
+        initAuth();
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                console.log("User:", user.uid);
+                loaderMsg.innerText = "讀取題庫中...";
+                
+                try {
+                    await loadBankList();
+                } catch (e) {
+                    console.error("Load Data Error:", e);
+                    loadDemo();
+                } finally {
+                    clearTimeout(forceUnlock); // 清除強制計時器
+                    loader.classList.add('hidden');
+                    
+                    if (allBanks.length > 0) {
+                        selectBank(allBanks[0].id);
+                    } else if (cards.length === 0) {
+                        loadDemo();
+                    }
+                }
+            }
+        });
+
+        // --- Firestore 互動 ---
+
+        async function loadBankList() {
+            if (!currentUser) return;
+            // 使用陣列來暫存，避免非同步問題
+            let tempBanks = [];
+            
+            try {
+                const banksRef = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'question_banks');
+                const qSnapshot = await getDocs(banksRef);
+                
+                qSnapshot.forEach((doc) => {
+                    tempBanks.push({ id: doc.id, ...doc.data() });
+                });
+                
+                // 時間排序 (新到舊)
+                tempBanks.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+                
+                allBanks = tempBanks;
+                renderSidebar();
+            } catch (error) {
+                console.error("Firestore read error:", error);
+                // 失敗時不中斷，保持空列表
             }
         }
 
-        // --- 3. 核心邏輯：卡片渲染與挖空 ---
+        async function saveNewBank(title, cardsData, rawText) {
+            if (!currentUser) {
+                alert("尚未連線，僅能在本次使用 (無法儲存)");
+                cards = cardsData;
+                currentIndex = 0;
+                document.getElementById('current-bank-title').innerText = title + " (未儲存)";
+                renderCard();
+                closeModal('modal-import');
+                return;
+            }
+
+            loader.classList.remove('hidden');
+            loaderMsg.innerText = "儲存中...";
+            
+            try {
+                const banksRef = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'question_banks');
+                const docRef = await addDoc(banksRef, {
+                    title: title,
+                    questions: cardsData,
+                    rawContent: rawText,
+                    createdAt: serverTimestamp()
+                });
+                
+                await loadBankList();
+                selectBank(docRef.id);
+                closeModal('modal-import');
+            } catch (e) {
+                console.error(e);
+                alert("儲存失敗，請檢查網路。");
+            } finally {
+                loader.classList.add('hidden');
+            }
+        }
+
+        async function updateBankInCloud() {
+            if (!currentUser || !currentBankId) return;
+            const bankRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'question_banks', currentBankId);
+            try {
+                await updateDoc(bankRef, { questions: cards });
+            } catch(e) {
+                console.error("Update failed", e);
+            }
+        }
+        
+        window.deleteBank = async (e, id) => {
+            e.stopPropagation();
+            if(!confirm("確定要刪除？")) return;
+            
+            loader.classList.remove('hidden');
+            try {
+                await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'question_banks', id));
+                await loadBankList();
+                if(id === currentBankId) {
+                    cards = [];
+                    currentBankId = null;
+                    document.getElementById('current-bank-title').innerText = "尚未選擇";
+                    renderCard();
+                }
+            } catch(e) {
+                alert("刪除失敗");
+            } finally {
+                loader.classList.add('hidden');
+            }
+        };
+
+        // --- UI 操作 ---
+
+        function renderSidebar() {
+            const container = document.getElementById('bank-list-container');
+            container.innerHTML = '';
+            
+            if (allBanks.length === 0) {
+                container.innerHTML = '<div style="color:#777; padding:10px; text-align:center;">尚無題庫</div>';
+                return;
+            }
+
+            allBanks.forEach(bank => {
+                const div = document.createElement('div');
+                div.className = `bank-item ${bank.id === currentBankId ? 'active' : ''}`;
+                div.onclick = () => { selectBank(bank.id); toggleSidebar(false); };
+                div.innerHTML = `
+                    <div class="bank-info">
+                        <h4>${bank.title}</h4>
+                        <p>${bank.questions.length} 題</p>
+                    </div>
+                    <button class="btn btn-sm btn-danger" onclick="deleteBank(event, '${bank.id}')">🗑️</button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function selectBank(id) {
+            const bank = allBanks.find(b => b.id === id);
+            if (!bank) return;
+            currentBankId = id;
+            cards = bank.questions || [];
+            currentIndex = 0;
+            document.getElementById('current-bank-title').innerText = bank.title;
+            renderSidebar();
+            renderCard();
+        }
+
         function renderCard() {
-            if (cards.length === 0) return;
+            const qBox = document.getElementById('question-text');
+            const aBox = document.getElementById('answer-text');
+            const idxSpan = document.getElementById('current-idx');
+            const totalSpan = document.getElementById('total-count');
+
+            if (cards.length === 0) {
+                qBox.innerText = "目前無題目，請匯入";
+                aBox.innerHTML = "";
+                idxSpan.innerText = "0";
+                totalSpan.innerText = "0";
+                return;
+            }
+
             const card = cards[currentIndex];
-            document.getElementById('question-text').innerText = `Q: ${card.q}`;
-            document.getElementById('current-idx').innerText = currentIndex + 1;
+            qBox.innerText = `Q: ${card.q}`;
+            idxSpan.innerText = currentIndex + 1;
+            totalSpan.innerText = cards.length;
 
-            // 處理答案顯示 (挖空邏輯)
-            const answerContainer = document.getElementById('answer-text');
-            answerContainer.innerHTML = ''; // 清空
-
-            // 簡單斷詞：以標點符號或空格切分，保留標點
-            // 這裡用正則將文字拆成 [文字, 標點, 文字...] 的陣列
+            aBox.innerHTML = '';
             const segments = card.a.split(/([，。、；：\s\n]+)/);
 
             segments.forEach(seg => {
                 if (!seg) return;
-                // 如果是標點符號或空白，直接顯示
                 if (/[，。、；：\s\n]/.test(seg)) {
                     const span = document.createElement('span');
                     span.innerText = seg;
-                    answerContainer.appendChild(span);
+                    aBox.appendChild(span);
                 } else {
-                    // 如果是文字，建立互動式挖空元件
                     const span = document.createElement('span');
                     span.innerText = seg;
                     span.className = 'cloze-word';
-                    
-                    // 根據 Level 決定是否預設隱藏
-                    if (maskLevel === 2) {
-                        span.classList.add('hidden');
-                    }
-                    
-                    // 點擊事件：切換顯示/隱藏
+                    if (maskLevel === 2) span.classList.add('hidden');
                     span.onclick = () => span.classList.toggle('hidden');
-                    answerContainer.appendChild(span);
+                    aBox.appendChild(span);
                 }
             });
         }
 
-        // --- 4. 輔助功能 ---
-        function toggleMaskLevel() {
-            maskLevel = maskLevel === 1 ? 2 : 1; // 1:全顯, 2:挖空
-            renderCard(); // 重新渲染
-        }
+        window.processImport = () => {
+            const title = document.getElementById('import-title').value.trim();
+            const text = document.getElementById('import-content').value;
+            
+            if (!title) { alert("請輸入題庫名稱"); return; }
+            if (!text) { alert("請輸入內容"); return; }
 
-        function nextCard() {
+            const regex = /(?:Q:|問：|題目：)(.*?)\n(?:A:|答：|答案：)([\s\S]*?)(?=(?:Q:|問：|題目：|$))/gi;
+            let match;
+            const newCards = [];
+            while ((match = regex.exec(text)) !== null) {
+                newCards.push({ q: match[1].trim(), a: match[2].trim() });
+            }
+
+            if (newCards.length > 0) {
+                saveNewBank(title, newCards, text);
+            } else {
+                alert("無法識別格式 (需包含 Q: 和 A:)");
+            }
+        };
+
+        window.openEditModal = () => {
             if (cards.length === 0) return;
-            // 簡單輪播 (真實 SRS 需結合演算法)
-            currentIndex = (currentIndex + 1) % cards.length;
+            const card = cards[currentIndex];
+            document.getElementById('edit-q').value = card.q;
+            document.getElementById('edit-a').value = card.a;
+            document.getElementById('modal-edit').classList.add('active');
+        };
+
+        window.saveEdit = async () => {
+            const newQ = document.getElementById('edit-q').value.trim();
+            const newA = document.getElementById('edit-a').value.trim();
+            
+            if (!newQ || !newA) { alert("不能為空"); return; }
+            
+            cards[currentIndex].q = newQ;
+            cards[currentIndex].a = newA;
+            
+            renderCard();
+            closeModal('modal-edit');
+            await updateBankInCloud();
+        };
+
+        window.handleRate = (rating) => {
+            if (cards.length === 0) return;
+            let nextIndex = currentIndex + 1;
+            if (nextIndex >= cards.length) nextIndex = 0;
+            currentIndex = nextIndex;
+            renderCard();
+        };
+
+        window.toggleSidebar = (show) => {
+            const sb = document.getElementById('sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+            if (show) {
+                sb.classList.add('active');
+                overlay.classList.add('active');
+                renderSidebar(); 
+            } else {
+                sb.classList.remove('active');
+                overlay.classList.remove('active');
+            }
+        };
+
+        window.openImportModal = () => {
+            document.getElementById('import-title').value = '';
+            document.getElementById('import-content').value = '';
+            toggleSidebar(false);
+            document.getElementById('modal-import').classList.add('active');
+        };
+
+        window.closeModal = (id) => {
+            document.getElementById(id).classList.remove('active');
+        };
+
+        window.toggleMaskLevel = () => {
+            maskLevel = maskLevel === 1 ? 2 : 1;
+            renderCard();
+        };
+
+        function loadDemo() {
+            cards = [{ q: "歡迎使用！(範例)", a: "請點選單匯入題庫。" }];
+            document.getElementById('current-bank-title').innerText = "範例模式 (未連線)";
             renderCard();
         }
 
-        function toggleImporter() {
-            const screen = document.getElementById('importer-screen');
-            screen.style.display = screen.style.display === 'block' ? 'none' : 'block';
-        }
-
-        // 預設載入一題範例
-        window.onload = () => {
-             document.getElementById('import-input').value = 
-`Q: 衛哨兵一般守則為何？
-A: 服裝整齊，配件光亮，不吸菸，不飲酒。
-Q: 用槍時機為何？
-A: 1. 生命受暴行脅迫時。\n2. 設施受劫奪破壞時。`;
-             processImport(); // 自動跑一次範例
-        };
     </script>
 </body>
 </html>
+
+
