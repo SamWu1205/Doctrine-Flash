@@ -27,7 +27,7 @@
             overflow: hidden;
         }
 
-        /* 通用按鈕樣式 */
+        /* 按鈕樣式 */
         .btn {
             border: none;
             border-radius: 8px;
@@ -45,7 +45,7 @@
         .btn-outline { background: transparent; border: 1px solid #555; color: var(--text-main); }
         .btn-sm { font-size: 0.85rem; padding: 5px 10px; }
 
-        /* --- 導航列 --- */
+        /* 導航列 */
         .header {
             display: flex;
             justify-content: space-between;
@@ -68,7 +68,7 @@
 
         .progress { color: var(--primary-color); font-weight: bold; font-size: 0.9rem; }
 
-        /* --- 主內容區 --- */
+        /* 主內容區 */
         .main-container {
             flex: 1;
             padding: 20px;
@@ -138,7 +138,7 @@
         .btn-act-hard { background-color: #ffb74d; color: #333; }
         .btn-act-easy { background-color: #81c784; color: #333; }
 
-        /* --- 側邊選單 --- */
+        /* 側邊選單 */
         .sidebar-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -189,7 +189,7 @@
         .bank-info h4 { margin: 0 0 5px 0; font-size: 1rem; color: #fff; }
         .bank-info p { margin: 0; font-size: 0.8rem; color: var(--text-sub); }
 
-        /* --- 彈出視窗 --- */
+        /* 彈出視窗 */
         .modal {
             display: none;
             position: fixed;
@@ -343,15 +343,36 @@
     <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
         import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
-        // 1. 初始化 Firebase
-        const firebaseConfig = JSON.parse(__firebase_config);
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'doctrine-flash-v2';
+        // =========================================================
+        // 1. Firebase 設定區
+        // =========================================================
+        
+        // --- 請在此處貼上您的 Firebase Config ---
+        // 範例： const firebaseConfig = { apiKey: "xxx", ... };
+ const firebaseConfig = {
+  apiKey: "AIzaSyC7MgXLY7SwH-gJW71d1jgpPmJwr--I6Mg",
+  authDomain: "doctrine-flash.firebaseapp.com",
+  projectId: "doctrine-flash",
+  storageBucket: "doctrine-flash.firebasestorage.app",
+  messagingSenderId: "433425348870",
+  appId: "1:433425348870:web:3fd60e44e18d27e1ab8687",
+  measurementId: "G-WE3QHJD139"
+};
+        // =========================================================
+
+        let app, auth, db;
+        
+        // 嘗試初始化
+        try {
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+        } catch (e) {
+            console.error("Firebase config missing or invalid");
+        }
 
         // 2. 狀態變數
         let currentUser = null;
@@ -360,7 +381,6 @@
         let currentIndex = 0;
         let maskLevel = 2;
         let allBanks = []; 
-        let isOnline = false;
 
         // UI 參考
         const loader = document.getElementById('loader');
@@ -368,84 +388,65 @@
         const statusDot = document.getElementById('status-indicator');
         const forceStartBtn = document.getElementById('force-start-btn');
 
-        // 3. 安全防護：如果 3 秒還沒連上，顯示「略過」按鈕
+        // 安全防護：如果 5 秒還沒連上，顯示「略過」按鈕
         setTimeout(() => {
             if (!loader.classList.contains('hidden')) {
                 forceStartBtn.classList.remove('hidden');
-                loaderMsg.innerText = "連線回應較慢...";
+                loaderMsg.innerText = "請檢查 Firebase 設定是否正確...";
             }
-        }, 3000);
+        }, 5000);
 
-        // 強制進入 (若網路卡住)
         window.forceStart = () => {
             loader.classList.add('hidden');
-            renderCard();
-            alert("已進入離線模式，部分雲端功能可能受限。");
+            if (!auth) alert("未偵測到正確的 Firebase 設定，將無法存檔。");
         };
 
-        // 更新連線狀態燈
         function updateStatus(online) {
-            isOnline = online;
             statusDot.className = online ? 'status-dot online' : 'status-dot offline';
         }
 
-        // 4. 認證流程 (依照系統規範)
-        const initAuth = async () => {
-            try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
-            } catch (error) {
-                console.error("Auth Error:", error);
-                // 嘗試備用登入
-                try { await signInAnonymously(auth); } catch(e) {}
-            }
-        };
+        // 3. 認證流程
+        if (auth) {
+            signInAnonymously(auth).catch(e => {
+                console.error("Auth Error:", e);
+                loaderMsg.innerText = "登入失敗: " + e.message;
+            });
 
-        initAuth();
-
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                currentUser = user;
-                console.log("Logged in:", user.uid);
-                updateStatus(true);
-                loaderMsg.innerText = "同步題庫中...";
-                
-                try {
-                    await loadBankList();
-                    loader.classList.add('hidden');
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    currentUser = user;
+                    updateStatus(true);
+                    loaderMsg.innerText = "同步題庫中...";
                     
-                    if (allBanks.length > 0) {
-                        selectBank(allBanks[0].id);
-                    } else {
-                        document.getElementById('question-text').innerText = "請點擊左上角選單匯入題庫";
-                        document.getElementById('current-bank-title').innerText = "尚無題庫";
+                    try {
+                        await loadBankList();
+                        loader.classList.add('hidden');
+                        
+                        if (allBanks.length > 0) {
+                            selectBank(allBanks[0].id);
+                        } else {
+                            document.getElementById('question-text').innerText = "請點擊左上角選單匯入題庫";
+                            document.getElementById('current-bank-title').innerText = "尚無題庫";
+                        }
+                    } catch (e) {
+                        console.error("Data Load Error:", e);
+                        loaderMsg.innerText = "讀取失敗";
+                        forceStartBtn.classList.remove('hidden');
                     }
-                } catch (e) {
-                    console.error("Data Load Error:", e);
-                    loaderMsg.innerText = "讀取失敗，請重整";
-                    forceStartBtn.classList.remove('hidden');
+                } else {
+                    updateStatus(false);
                 }
-            } else {
-                updateStatus(false);
-            }
-        });
+            });
+        }
 
         // --- Firestore 互動 ---
 
-        // 嚴格遵守路徑規則：artifacts/{appId}/users/{userId}/question_banks
-        function getCollectionRef() {
-            if (!currentUser) return null;
-            return collection(db, 'artifacts', appId, 'users', currentUser.uid, 'question_banks');
-        }
-
         async function loadBankList() {
-            const banksRef = getCollectionRef();
-            if (!banksRef) return;
-
+            if (!currentUser || !db) return;
+            // 雲端路徑：users/{uid}/question_banks
+            const banksRef = collection(db, 'users', currentUser.uid, 'question_banks');
             const qSnapshot = await getDocs(banksRef);
+            
             let tempBanks = [];
             qSnapshot.forEach((doc) => {
                 tempBanks.push({ id: doc.id, ...doc.data() });
@@ -453,19 +454,18 @@
             
             // 排序 (新到舊)
             tempBanks.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
-            
             allBanks = tempBanks;
             renderSidebar();
         }
 
         async function saveNewBank(title, cardsData, rawText) {
-            if (!currentUser) { alert("未連線，無法儲存"); return; }
+            if (!currentUser || !db) { alert("未連線，無法儲存"); return; }
 
             loader.classList.remove('hidden');
             loaderMsg.innerText = "上傳中...";
             
             try {
-                const banksRef = getCollectionRef();
+                const banksRef = collection(db, 'users', currentUser.uid, 'question_banks');
                 const docRef = await addDoc(banksRef, {
                     title: title,
                     questions: cardsData,
@@ -478,31 +478,31 @@
                 closeModal('modal-import');
             } catch (e) {
                 console.error(e);
-                alert("上傳失敗，請檢查網路");
+                alert("上傳失敗: " + e.message);
             } finally {
                 loader.classList.add('hidden');
             }
         }
 
         async function updateBankInCloud() {
-            if (!currentUser || !currentBankId) return;
-            const bankRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'question_banks', currentBankId);
+            if (!currentUser || !currentBankId || !db) return;
+            const bankRef = doc(db, 'users', currentUser.uid, 'question_banks', currentBankId);
             try {
                 await updateDoc(bankRef, { questions: cards });
             } catch(e) {
                 console.error("Update failed", e);
-                updateStatus(false); // 標記為可能離線
+                updateStatus(false);
             }
         }
         
         window.deleteBank = async (e, id) => {
             e.stopPropagation();
             if(!confirm("確定要刪除？這將無法復原。")) return;
-            
+            if(!db) return;
+
             loader.classList.remove('hidden');
-            loaderMsg.innerText = "刪除中...";
             try {
-                await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'question_banks', id));
+                await deleteDoc(doc(db, 'users', currentUser.uid, 'question_banks', id));
                 await loadBankList();
                 if(id === currentBankId) {
                     cards = [];
@@ -561,11 +561,7 @@
             const totalSpan = document.getElementById('total-count');
 
             if (cards.length === 0) {
-                if (currentUser) {
-                     qBox.innerText = "請匯入題庫";
-                } else {
-                     qBox.innerText = "初始化中...";
-                }
+                qBox.innerText = currentUser ? "請匯入題庫" : "初始化失敗";
                 aBox.innerHTML = "";
                 idxSpan.innerText = "0";
                 totalSpan.innerText = "0";
