@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>準則快憶通 (Cloud)</title>
+    <title>準則快憶通 (團隊共享版)</title>
     <style>
         /* --- 核心樣式：暗黑模式 --- */
         :root {
             --bg-color: #121212;
             --surface-color: #1e1e1e;
-            --primary-color: #4caf50;
+            --primary-color: #4caf50; /* 綠色系，適合軍用感 */
             --text-main: #e0e0e0;
             --text-sub: #aaaaaa;
             --danger-color: #e57373;
@@ -238,6 +238,9 @@
             border-radius: 5px;
             cursor: pointer;
         }
+        #error-detail {
+            color: #e57373; font-size: 0.8rem; margin-top: 5px; max-width: 80%; text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -245,7 +248,8 @@
     <!-- 載入動畫 -->
     <div id="loader">
         <div style="font-size: 2rem; margin-bottom: 10px;">☁️</div>
-        <div id="loader-msg">正在連線至雲端資料庫...</div>
+        <div id="loader-msg">正在同步團隊資料庫...</div>
+        <div id="error-detail"></div>
         <button id="force-start-btn" class="loader-retry-btn hidden" onclick="forceStart()">略過連線 (離線使用)</button>
     </div>
 
@@ -253,7 +257,7 @@
     <div class="sidebar-overlay" onclick="toggleSidebar(false)"></div>
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <h3 style="margin:0">雲端題庫</h3>
+            <h3 style="margin:0">公共題庫</h3>
             <button class="btn btn-sm btn-outline" onclick="toggleSidebar(false)">✕</button>
         </div>
         <div class="bank-list" id="bank-list-container">
@@ -302,7 +306,7 @@
     <!-- 匯入視窗 -->
     <div id="modal-import" class="modal">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-            <h2>匯入新題庫</h2>
+            <h2>匯入新題庫 (全體可見)</h2>
             <button class="btn btn-sm btn-outline" onclick="closeModal('modal-import')">取消</button>
         </div>
         
@@ -317,7 +321,7 @@
         </div>
         
         <div style="margin-top:auto;">
-            <button class="btn btn-primary" style="width:100%" onclick="processImport()">儲存至雲端</button>
+            <button class="btn btn-primary" style="width:100%" onclick="processImport()">上傳至公共區</button>
         </div>
     </div>
 
@@ -347,17 +351,16 @@
         import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
         // =========================================================
-        // 1. Firebase 設定區
+        // 1. Firebase 設定區 (已填入您的金鑰)
         // =========================================================
-        
         const firebaseConfig = {
-            apiKey: "AIzaSyC7MgXLY7SwH-gJW71d1jgpPmJwr--I6Mg",
-            authDomain: "doctrine-flash.firebaseapp.com",
-            projectId: "doctrine-flash",
-            storageBucket: "doctrine-flash.firebasestorage.app",
-            messagingSenderId: "433425348870",
-            appId: "1:433425348870:web:3fd60e44e18d27e1ab8687",
-            measurementId: "G-WE3QHJD139"
+          apiKey: "AIzaSyC7MgXLY7SwH-gJW71d1jgpPmJwr--I6Mg",
+          authDomain: "doctrine-flash.firebaseapp.com",
+          projectId: "doctrine-flash",
+          storageBucket: "doctrine-flash.firebasestorage.app",
+          messagingSenderId: "433425348870",
+          appId: "1:433425348870:web:3fd60e44e18d27e1ab8687",
+          measurementId: "G-WE3QHJD139"
         };
         // =========================================================
 
@@ -382,20 +385,24 @@
         // UI 參考
         const loader = document.getElementById('loader');
         const loaderMsg = document.getElementById('loader-msg');
+        const errorDetail = document.getElementById('error-detail');
         const statusDot = document.getElementById('status-indicator');
         const forceStartBtn = document.getElementById('force-start-btn');
 
-        // 安全防護：如果 5 秒還沒連上，顯示「略過」按鈕
+        // 安全防護
         setTimeout(() => {
             if (!loader.classList.contains('hidden')) {
                 forceStartBtn.classList.remove('hidden');
-                loaderMsg.innerText = "連線過久，請檢查 Firebase 設定...";
+                loaderMsg.innerText = "連線回應較慢...";
+                if (!window.location.hostname.includes('github') && !window.location.hostname.includes('localhost')) {
+                     errorDetail.innerText = "提示：請確認 Firebase Console 的「Authorized Domains」已加入目前網域。";
+                }
             }
-        }, 5000);
+        }, 3000);
 
         window.forceStart = () => {
             loader.classList.add('hidden');
-            if (!auth) alert("無法連線至資料庫。");
+            if (!currentUser) alert("離線模式：無法看見團隊題庫。");
         };
 
         function updateStatus(online) {
@@ -406,14 +413,21 @@
         if (auth) {
             signInAnonymously(auth).catch(e => {
                 console.error("Auth Error:", e);
-                loaderMsg.innerText = "登入失敗 (請確認 Authentication 已啟用匿名): " + e.message;
+                loaderMsg.innerText = "登入失敗";
+                if(e.code === 'auth/unauthorized-domain') {
+                    errorDetail.innerText = `錯誤：網域未授權。\n請至 Firebase Console -> Authentication -> Settings -> Authorized Domains\n新增網域：${window.location.hostname}`;
+                } else {
+                    errorDetail.innerText = e.message;
+                }
+                forceStartBtn.classList.remove('hidden');
             });
 
             onAuthStateChanged(auth, async (user) => {
                 if (user) {
                     currentUser = user;
                     updateStatus(true);
-                    loaderMsg.innerText = "同步題庫中...";
+                    loaderMsg.innerText = "讀取公共題庫...";
+                    errorDetail.innerText = ""; 
                     
                     try {
                         await loadBankList();
@@ -422,12 +436,13 @@
                         if (allBanks.length > 0) {
                             selectBank(allBanks[0].id);
                         } else {
-                            document.getElementById('question-text').innerText = "請點擊左上角選單匯入題庫";
-                            document.getElementById('current-bank-title').innerText = "尚無題庫";
+                            document.getElementById('question-text').innerText = "公共區尚無題庫，請匯入";
+                            document.getElementById('current-bank-title').innerText = "尚無資料";
                         }
                     } catch (e) {
                         console.error("Data Load Error:", e);
-                        loaderMsg.innerText = "讀取失敗 (請確認 Firestore 已啟用): " + e.message;
+                        loaderMsg.innerText = "讀取失敗";
+                        errorDetail.innerText = "資料庫權限不足或連線錯誤。";
                         forceStartBtn.classList.remove('hidden');
                     }
                 } else {
@@ -436,12 +451,15 @@
             });
         }
 
-        // --- Firestore 互動 ---
+        // --- Firestore 互動 (修改為公共路徑) ---
+
+        // 注意：這裡改用 'public_question_banks'，不綁定 uid
+        // 這樣所有人讀取的都是同一個 Collection
+        const PUBLIC_COLLECTION = 'public_question_banks';
 
         async function loadBankList() {
-            if (!currentUser || !db) return;
-            // 雲端路徑：users/{uid}/question_banks
-            const banksRef = collection(db, 'users', currentUser.uid, 'question_banks');
+            if (!db) return;
+            const banksRef = collection(db, PUBLIC_COLLECTION);
             const qSnapshot = await getDocs(banksRef);
             
             let tempBanks = [];
@@ -462,12 +480,13 @@
             loaderMsg.innerText = "上傳中...";
             
             try {
-                const banksRef = collection(db, 'users', currentUser.uid, 'question_banks');
+                const banksRef = collection(db, PUBLIC_COLLECTION);
                 const docRef = await addDoc(banksRef, {
                     title: title,
                     questions: cardsData,
                     rawContent: rawText,
-                    createdAt: serverTimestamp()
+                    createdAt: serverTimestamp(),
+                    uploader: currentUser.uid // 紀錄是誰傳的(可選)
                 });
                 
                 await loadBankList();
@@ -482,8 +501,8 @@
         }
 
         async function updateBankInCloud() {
-            if (!currentUser || !currentBankId || !db) return;
-            const bankRef = doc(db, 'users', currentUser.uid, 'question_banks', currentBankId);
+            if (!currentBankId || !db) return;
+            const bankRef = doc(db, PUBLIC_COLLECTION, currentBankId);
             try {
                 await updateDoc(bankRef, { questions: cards });
             } catch(e) {
@@ -494,12 +513,12 @@
         
         window.deleteBank = async (e, id) => {
             e.stopPropagation();
-            if(!confirm("確定要刪除？這將無法復原。")) return;
+            if(!confirm("⚠️ 注意：這是公共題庫，刪除後所有人都會看不到。\n確定要刪除嗎？")) return;
             if(!db) return;
 
             loader.classList.remove('hidden');
             try {
-                await deleteDoc(doc(db, 'users', currentUser.uid, 'question_banks', id));
+                await deleteDoc(doc(db, PUBLIC_COLLECTION, id));
                 await loadBankList();
                 if(id === currentBankId) {
                     cards = [];
@@ -521,7 +540,7 @@
             container.innerHTML = '';
             
             if (allBanks.length === 0) {
-                container.innerHTML = '<div style="color:#777; padding:10px; text-align:center;">目前無資料</div>';
+                container.innerHTML = '<div style="color:#777; padding:10px; text-align:center;">公共區無資料</div>';
                 return;
             }
 
@@ -558,7 +577,7 @@
             const totalSpan = document.getElementById('total-count');
 
             if (cards.length === 0) {
-                qBox.innerText = currentUser ? "請匯入題庫" : "初始化失敗";
+                qBox.innerText = currentUser ? "公共區尚無題目" : "初始化失敗";
                 aBox.innerHTML = "";
                 idxSpan.innerText = "0";
                 totalSpan.innerText = "0";
