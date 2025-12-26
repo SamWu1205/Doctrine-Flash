@@ -3,16 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>準則快憶通 SRS</title>
+    <title>準則快憶通 SRS v2</title>
     <style>
         /* --- 核心設定 --- */
         :root {
             --bg-color: #121212;
             --surface-color: #1e1e1e;
             --primary-color: #4caf50;
+            --secondary-color: #2196f3;
             --danger-color: #e57373;
             --warning-color: #ffb74d;
             --text-main: #e0e0e0;
+            --text-sub: #aaaaaa;
         }
 
         body {
@@ -41,6 +43,18 @@
         }
         .notification-badge.show { display: inline-block; }
 
+        /* --- 工具列 (新功能) --- */
+        .toolbar {
+            display: flex; gap: 8px; overflow-x: auto; padding: 10px;
+            background: #181818; border-bottom: 1px solid #333;
+        }
+        .tool-btn {
+            background: #333; color: #ccc; border: 1px solid #444;
+            padding: 5px 12px; border-radius: 15px; font-size: 0.85rem;
+            white-space: nowrap; cursor: pointer; display: flex; align-items: center; gap: 5px;
+        }
+        .tool-btn:active { background: #444; }
+
         /* --- 卡片主體 (滑動區) --- */
         .main-container {
             flex: 1; position: relative;
@@ -49,7 +63,7 @@
         }
 
         .card {
-            width: 90%; max-width: 600px; height: 80%;
+            width: 90%; max-width: 600px; height: 85%;
             background: var(--surface-color);
             border-radius: 16px;
             padding: 20px;
@@ -78,6 +92,9 @@
         .swipe-right .indicator-easy { opacity: 1; color: var(--primary-color); border-color: var(--primary-color); }
         .swipe-down .indicator-blur { opacity: 1; color: var(--warning-color); border-color: var(--warning-color); top: auto; bottom: 20px; }
 
+        .question-meta {
+            font-size: 0.8rem; color: #666; margin-bottom: 5px; display: flex; justify-content: space-between;
+        }
         .question-box {
             font-size: 1.3rem; font-weight: bold; color: #81c784;
             margin-bottom: 20px; flex-shrink: 0;
@@ -93,6 +110,19 @@
         .mask-lv1 { background: #333; color: transparent !important; border-radius: 4px; user-select: none; }
         .mask-lv2 { color: #aaa; }
         .mask-lv2 span.hidden-part { display: none; }
+
+        /* --- 底部控制列 (新功能) --- */
+        .control-bar {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-top: auto; padding-top: 15px; border-top: 1px solid #333;
+        }
+        .nav-btn {
+            background: #2a2a2a; border: 1px solid #444; color: #fff;
+            width: 40px; height: 40px; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 1.2rem; cursor: pointer;
+        }
+        .nav-btn:active { background: #444; }
 
         /* 側邊欄與 Modal */
         .sidebar-overlay, .modal {
@@ -110,7 +140,7 @@
         
         .modal-content {
             background: #1e1e1e; padding: 20px; border-radius: 12px; width: 90%; max-width: 500px;
-            display: flex; flex-direction: column; gap: 15px; border: 1px solid #444;
+            display: flex; flex-direction: column; gap: 15px; border: 1px solid #444; max-height: 85vh;
         }
 
         .list-item {
@@ -119,11 +149,20 @@
         }
         .list-item.active { border: 1px solid var(--primary-color); background: #2a3a2a; }
         
-        input, textarea {
+        /* 表格樣式 (熟悉度) */
+        .status-table {
+            width: 100%; border-collapse: collapse; font-size: 0.9rem;
+        }
+        .status-table th { text-align: left; color: #888; padding: 5px; border-bottom: 1px solid #444; }
+        .status-table td { padding: 8px 5px; border-bottom: 1px solid #333; color: #ddd; }
+        .status-row:active { background: #333; }
+        
+        input, textarea, select {
             width: 100%; background: #2a2a2a; border: 1px solid #444; color: #fff;
             padding: 10px; border-radius: 6px; box-sizing: border-box; font-size: 1rem;
         }
-        
+        .row-inputs { display: flex; gap: 10px; }
+
         .admin-only { display: none !important; }
         body.is-admin .admin-only { display: flex !important; }
 
@@ -141,6 +180,10 @@
             padding: 5px 12px; border-radius: 18px; border: none; background: transparent; color: #aaa; font-size: 0.8rem; cursor: pointer;
         }
         .mode-btn.active { background: var(--primary-color); color: #fff; }
+        
+        .tag-review { color: var(--danger-color); font-size: 0.8rem; border: 1px solid var(--danger-color); padding: 1px 4px; border-radius: 4px; }
+        .tag-future { color: var(--primary-color); font-size: 0.8rem; }
+        .tag-new { color: var(--text-sub); font-size: 0.8rem; }
 
     </style>
 </head>
@@ -176,11 +219,17 @@
         
         <!-- 學習模式切換 -->
         <div class="mode-switch">
-            <button class="mode-btn active" id="mode-smart" onclick="setMode('smart')">智慧複習</button>
-            <button class="mode-btn" id="mode-cram" onclick="setMode('cram')">全部瀏覽</button>
+            <button class="mode-btn active" id="mode-smart" onclick="setMode('smart')">智慧</button>
+            <button class="mode-btn" id="mode-cram" onclick="setMode('cram')">瀏覽</button>
         </div>
 
         <button onclick="toggleAdmin()" id="lock-btn" style="background:none; border:none; font-size:1.2rem; cursor:pointer;">🔒</button>
+    </div>
+
+    <!-- 工具列 -->
+    <div class="toolbar">
+        <button class="tool-btn" onclick="openSettings()">⚙️ 範圍/隨機</button>
+        <button class="tool-btn" onclick="openStatusList()">📋 熟悉度/列表</button>
     </div>
 
     <!-- 卡片區 -->
@@ -189,9 +238,12 @@
         <!-- 任務完成畫面 -->
         <div id="empty-state" class="empty-state">
             <div style="font-size: 4rem;">🎉</div>
-            <h2>今日任務完成</h2>
-            <p>這個題庫目前沒有需要複習的卡片。<br>休息一下，明天再來！</p>
-            <button onclick="setMode('cram')" style="margin-top:20px; padding:8px 20px; background:#333; color:#fff; border:1px solid #555; border-radius:20px;">我想強制複習全部</button>
+            <h2>任務完成</h2>
+            <p>目前條件下沒有題目了。</p>
+            <div style="display:flex; gap:10px; justify-content:center; margin-top:20px;">
+                <button onclick="openSettings()" style="padding:8px 20px; background:#333; color:#fff; border:1px solid #555; border-radius:20px;">調整範圍</button>
+                <button onclick="setMode('cram'); openSettings('reset');" style="padding:8px 20px; background:var(--primary-color); color:#fff; border:none; border-radius:20px;">全部重練</button>
+            </div>
         </div>
 
         <!-- 實體卡片 -->
@@ -200,27 +252,83 @@
             <div class="swipe-indicator indicator-easy" style="border-color:var(--primary-color); color:var(--primary-color);">簡單</div>
             <div class="swipe-indicator indicator-blur" style="border-color:var(--warning-color); color:var(--warning-color);">模糊</div>
             
+            <div class="question-meta">
+                <span id="q-index">#1</span>
+                <span>待複習: <span id="queue-count" style="color:var(--primary-color);">0</span></span>
+            </div>
+            
             <div class="question-box" id="q-text">請選擇題庫</div>
             
-            <!-- 剩餘題數提示 -->
-            <div style="font-size:0.8rem; color:#666; margin-bottom:10px; text-align:right;">
-                待複習: <span id="queue-count" style="color:var(--primary-color);">0</span>
-            </div>
-
             <div class="answer-box" id="a-text"></div>
             
-            <div style="margin-top:auto; text-align:center; padding-top:10px; border-top:1px solid #333;">
-                <button onclick="cycleMask()" id="mask-btn" style="background:#333; border:1px solid #555; color:#aaa; padding:5px 15px; border-radius:20px; font-size:0.8rem;">
-                    遮罩: Lv2 (提示)
-                </button>
-                <button onclick="openEdit()" style="background:none; border:none; color:#666; font-size:0.8rem; margin-left:10px;">
-                    ✎ 修正
-                </button>
+            <div class="control-bar">
+                <button class="nav-btn" onclick="undoAction()">↩</button>
+                
+                <div style="display:flex; gap:10px;">
+                    <button onclick="cycleMask()" id="mask-btn" style="background:#333; border:1px solid #555; color:#aaa; padding:5px 15px; border-radius:20px; font-size:0.8rem;">
+                        遮罩: Lv1
+                    </button>
+                    <button onclick="openEdit()" style="background:none; border:none; color:#666; font-size:0.8rem;">
+                        ✎ 修正
+                    </button>
+                </div>
+
+                <button class="nav-btn" onclick="skipAction()">➡</button>
             </div>
         </div>
     </div>
 
-    <!-- 彈窗 -->
+    <!-- 範圍設定 Modal -->
+    <div id="modal-settings" class="modal">
+        <div class="modal-content">
+            <h3>📖 抽題範圍設定</h3>
+            <div>
+                <label style="color:#aaa; font-size:0.9rem;">題目區間 (總題數: <span id="total-q-count">0</span>)</label>
+                <div class="row-inputs" style="margin-top:5px;">
+                    <input type="number" id="set-start" placeholder="起始" value="1">
+                    <span style="align-self:center;">~</span>
+                    <input type="number" id="set-end" placeholder="結束">
+                </div>
+            </div>
+            
+            <div style="display:flex; align-items:center; gap:10px; margin-top:10px;">
+                <input type="checkbox" id="set-random" style="width:20px; height:20px;">
+                <label for="set-random" style="color:#fff;">隨機抽題</label>
+            </div>
+            
+            <div id="random-count-box" style="display:none; margin-top:5px;">
+                <label style="color:#aaa; font-size:0.9rem;">抽取數量</label>
+                <input type="number" id="set-count" value="20">
+            </div>
+
+            <div style="display:flex; gap:10px; margin-top:15px;">
+                <button onclick="closeModal('modal-settings')" style="flex:1; padding:10px; background:none; border:1px solid #555; color:#fff; border-radius:6px;">取消</button>
+                <button onclick="applySettings()" style="flex:1; padding:10px; background:var(--primary-color); border:none; color:#fff; border-radius:6px;">確認並開始</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 熟悉度列表 Modal -->
+    <div id="modal-status" class="modal">
+        <div class="modal-content">
+            <h3>📊 題目熟悉度一覽</h3>
+            <div style="overflow-y:auto; flex:1; border:1px solid #333; border-radius:4px;">
+                <table class="status-table">
+                    <thead>
+                        <tr>
+                            <th style="width:15%">#</th>
+                            <th>題目預覽</th>
+                            <th style="width:30%">下次複習</th>
+                        </tr>
+                    </thead>
+                    <tbody id="status-list-body"></tbody>
+                </table>
+            </div>
+            <button onclick="closeModal('modal-status')" style="padding:10px; background:#333; border:none; color:#fff; border-radius:6px; margin-top:10px;">關閉</button>
+        </div>
+    </div>
+
+    <!-- 其他 Modals (Import, Edit, Review) -->
     <div id="modal-import" class="modal">
         <div class="modal-content">
             <h3>新增題庫</h3>
@@ -258,8 +366,8 @@
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
         import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, serverTimestamp, query, orderBy, onSnapshot, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
-        // === 設定區 (保留金鑰) ===
-        const ADMIN_PIN = "8888";
+        // === 設定區 ===
+        const ADMIN_PIN = "1001";
         const firebaseConfig = {
           apiKey: "AIzaSyC7MgXLY7SwH-gJW71d1jgpPmJwr--I6Mg",
           authDomain: "doctrine-flash.firebaseapp.com",
@@ -273,14 +381,24 @@
         // === 全域變數 ===
         let db, auth, currentUser;
         let banks = [];
-        let allCards = []; // 該題庫所有卡片
-        let studyQueue = []; // 當前待刷隊列 (存 index)
+        let allCards = []; 
+        let studyQueue = []; 
+        let historyStack = []; // 上一題堆疊
         let currentBankId = null;
-        let maskLevel = 2; 
+        let maskLevel = 1; // 預設 Lv1
         let isAdmin = false;
         let touchStartX = 0, touchStartY = 0;
-        let studyMode = 'smart'; // 'smart' (SRS) or 'cram' (全部)
-        let progressMap = {}; // { [index]: nextReviewTime }
+        let studyMode = 'smart'; 
+        let progressMap = {}; 
+        
+        // 篩選設定
+        let filterConfig = {
+            active: false,
+            start: 1,
+            end: 0,
+            isRandom: false,
+            randomCount: 20
+        };
 
         // === 初始化 ===
         const app = initializeApp(firebaseConfig);
@@ -306,7 +424,7 @@
                 banks = [];
                 snapshot.forEach(d => {
                     const data = d.data();
-                    if(data.order === undefined) { // 修復無排序欄位
+                    if(data.order === undefined) { 
                          updateDoc(doc(db, 'public_question_banks', d.id), { order: Date.now() });
                     }
                     banks.push({id: d.id, ...data});
@@ -314,7 +432,6 @@
                 banks.sort((a,b) => (a.order || 0) - (b.order || 0));
                 renderSidebar();
                 
-                // 自動載入上次的題庫
                 const saved = JSON.parse(localStorage.getItem('df_progress') || '{}');
                 if(!currentBankId && saved.bankId && banks.find(b => b.id === saved.bankId)) {
                     selectBank(saved.bankId);
@@ -322,7 +439,7 @@
             });
         }
 
-        // === 2. 選擇題庫 & 建立複習隊列 (核心 SRS 邏輯) ===
+        // === 2. 選擇題庫 & 設定 ===
         window.selectBank = async (id) => {
             const b = banks.find(x => x.id === id);
             if(!b) return;
@@ -331,14 +448,15 @@
             allCards = b.questions || [];
             localStorage.setItem('df_progress', JSON.stringify({ bankId: id }));
 
-            // 讀取個人進度 (私有雲端路徑)
-            // users/{uid}/progress/{bankId}
+            // 重置篩選預設值
+            filterConfig = { active: false, start: 1, end: allCards.length, isRandom: false, randomCount: 20 };
+            
+            // 讀取進度
             const progRef = doc(db, 'users', currentUser.uid, 'progress', id);
             const progSnap = await getDoc(progRef);
-            
             progressMap = progSnap.exists() ? progSnap.data().reviews || {} : {};
 
-            buildQueue(); // 根據模式建立隊列
+            buildQueue(); 
             renderSidebar();
         };
 
@@ -349,23 +467,84 @@
             if(currentBankId) buildQueue();
         };
 
+        // 開啟設定面板
+        window.openSettings = (action) => {
+            if(!currentBankId) return alert("請先選擇題庫");
+            if(action === 'reset') {
+                filterConfig = { active: false, start: 1, end: allCards.length, isRandom: false, randomCount: 20 };
+                buildQueue();
+                return;
+            }
+            document.getElementById('total-q-count').innerText = allCards.length;
+            document.getElementById('set-end').value = allCards.length; // 預設最大值
+            document.getElementById('set-random').checked = false;
+            document.getElementById('random-count-box').style.display = 'none';
+            openModal('modal-settings');
+        };
+
+        // 監聽隨機checkbox
+        document.getElementById('set-random').addEventListener('change', (e) => {
+            document.getElementById('random-count-box').style.display = e.target.checked ? 'block' : 'none';
+        });
+
+        // 應用設定並重建隊列
+        window.applySettings = () => {
+            const s = parseInt(document.getElementById('set-start').value) || 1;
+            const e = parseInt(document.getElementById('set-end').value) || allCards.length;
+            const rnd = document.getElementById('set-random').checked;
+            const cnt = parseInt(document.getElementById('set-count').value) || 20;
+
+            filterConfig = {
+                active: true,
+                start: Math.max(1, s),
+                end: Math.min(allCards.length, e),
+                isRandom: rnd,
+                randomCount: cnt
+            };
+            
+            buildQueue();
+            closeModal('modal-settings');
+        };
+
         function buildQueue() {
             studyQueue = [];
+            historyStack = []; // 清空歷史
             const now = Date.now();
-
-            if (studyMode === 'cram') {
-                // 全部瀏覽模式：加入所有卡片 index
-                for(let i=0; i<allCards.length; i++) studyQueue.push(i);
-            } else {
-                // 智慧模式：只加入 "新卡" 或 "到期卡"
-                for(let i=0; i<allCards.length; i++) {
-                    const nextReview = progressMap[i]?.nextReview || 0; // 0 代表新卡
-                    if (nextReview <= now) {
-                        studyQueue.push(i);
-                    }
+            
+            // 1. 先建立候選池 (根據範圍)
+            let candidates = [];
+            for(let i=0; i<allCards.length; i++) {
+                // 題號是 i+1
+                if(i + 1 >= filterConfig.start && i + 1 <= filterConfig.end) {
+                    candidates.push(i);
                 }
             }
 
+            // 2. 根據模式過濾
+            let filtered = [];
+            if (studyMode === 'cram' || filterConfig.active) {
+                // 瀏覽模式或有自訂範圍：全部候選都加入
+                filtered = candidates;
+            } else {
+                // 智慧模式且無自訂範圍：只加入到期卡
+                filtered = candidates.filter(i => {
+                    const nextReview = progressMap[i]?.nextReview || 0;
+                    return nextReview <= now;
+                });
+            }
+
+            // 3. 隨機處理
+            if(filterConfig.isRandom) {
+                // Shuffle
+                for (let i = filtered.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [filtered[i], filtered[j]] = [filtered[j], filtered[i]];
+                }
+                // 切割數量
+                filtered = filtered.slice(0, filterConfig.randomCount);
+            }
+
+            studyQueue = filtered;
             renderCard();
         }
 
@@ -374,40 +553,44 @@
             const cardEl = document.getElementById('active-card');
             const emptyEl = document.getElementById('empty-state');
             const qCount = document.getElementById('queue-count');
+            const maskBtn = document.getElementById('mask-btn');
+
+            maskBtn.innerText = `遮罩: Lv${maskLevel}`;
 
             if(studyQueue.length === 0) {
-                // 隊列為空 -> 顯示完成畫面
                 cardEl.style.display = 'none';
                 emptyEl.classList.add('show');
                 qCount.innerText = "0";
                 return;
             }
 
-            // 顯示卡片
+            // Reset Card Style
             cardEl.style.display = 'flex';
             cardEl.style.transform = 'translate(0,0) rotate(0deg)';
             cardEl.style.opacity = '1';
             emptyEl.classList.remove('show');
             qCount.innerText = studyQueue.length;
 
-            const idx = studyQueue[0]; // 取隊列第一個
+            const idx = studyQueue[0]; 
             const c = allCards[idx];
             
+            document.getElementById('q-index').innerText = `#${idx + 1}`;
             document.getElementById('q-text').innerText = c.q;
             
             const aDiv = document.getElementById('a-text');
             aDiv.innerHTML = '';
             
-            // 遮罩渲染
+            // 遮罩邏輯
             if (maskLevel === 3) {
                 aDiv.innerText = c.a;
             } else if (maskLevel === 1) {
                 const span = document.createElement('span');
                 span.className = 'mask-lv1';
-                span.innerText = c.a;
+                span.innerText = c.a || "無答案"; // 防止空字串變為不可見
+                if(!c.a) span.innerText = "(無內容)";
                 aDiv.appendChild(span);
             } else {
-                const parts = c.a.split(/([，。、；：\n]+)/);
+                const parts = (c.a || "").split(/([，。、；：\n]+)/);
                 parts.forEach(p => {
                     if(!p) return;
                     if(/[，。、；：\n]/.test(p)) aDiv.appendChild(document.createTextNode(p));
@@ -423,11 +606,12 @@
             }
         }
 
-        // === 4. 滑動邏輯與演算法更新 (Handle Action) ===
+        // === 4. 動作與導航 ===
+        
+        // 評分與滑動
         window.handleAction = async (dir) => {
             if(studyQueue.length === 0) return;
 
-            // 動畫
             const cardEl = document.getElementById('active-card');
             let trans = '';
             if(dir === 'left') trans = 'translate(-150%, 0) rotate(-20deg)'; // 忘記
@@ -438,50 +622,78 @@
             cardEl.style.transform = trans;
             cardEl.style.opacity = '0';
 
-            const currentIndex = studyQueue.shift(); // 移除當前卡片
+            const currentIndex = studyQueue.shift(); 
+            historyStack.push(currentIndex); // 存入歷史，供上一題使用
+            
             const now = Date.now();
             
-            // 演算法計算 (僅在智慧模式下寫入資料庫，瀏覽模式不影響進度)
+            // 演算法計算
             if (studyMode === 'smart') {
-                let interval = progressMap[currentIndex]?.interval || 0; // 天數
+                let interval = progressMap[currentIndex]?.interval || 0;
                 let nextReview = 0;
 
                 if (dir === 'right') { 
-                    // 簡單 (Easy): 進入長期記憶
-                    if (interval === 0) interval = 1; // 第一次答對，明天複習
-                    else interval = Math.ceil(interval * 2.5); // 指數增長
+                    if (interval === 0) interval = 1; 
+                    else interval = Math.ceil(interval * 2.5); 
                     nextReview = now + (interval * 24 * 60 * 60 * 1000);
-                    
-                    // 從隊列中移除 (今天不用再看了)
                 } else if (dir === 'down') {
-                    // 模糊 (Blurry): 短期重現
-                    interval = 0; // 重置間隔
-                    nextReview = now; // 其實應該設為 +10分鐘，但為了方便，設為隊列末端
-                    studyQueue.push(currentIndex); // 放回隊列尾端，稍後再背
+                    interval = 0; 
+                    nextReview = now; 
+                    studyQueue.push(currentIndex); 
                 } else {
-                    // 忘記 (Forget): 立即重現
                     interval = 0;
                     nextReview = now;
-                    // 隨機插入隊列前段 (例如第3張後)，強迫短期記憶
                     const insertPos = Math.min(studyQueue.length, 3);
                     studyQueue.splice(insertPos, 0, currentIndex);
                 }
 
-                // 更新本地記憶體
                 progressMap[currentIndex] = { nextReview, interval };
-                
-                // 寫入雲端 (使用 setDoc merge 以免覆蓋其他題進度)
                 const progRef = doc(db, 'users', currentUser.uid, 'progress', currentBankId);
-                // 不等待寫入完成，直接下一題以保持流暢
                 setDoc(progRef, { reviews: progressMap }, { merge: true });
             } else {
-                // 瀏覽模式 (Cram): 只是單純循環
+                // Cram 模式循環
                 if (dir !== 'right') {
-                    studyQueue.push(currentIndex); // 沒背熟就丟後面
+                    studyQueue.push(currentIndex); 
                 }
             }
 
-            // 等待動畫結束後渲染下一張
+            setTimeout(() => {
+                cardEl.style.transition = 'none';
+                renderCard();
+            }, 300);
+        };
+
+        // 上一題 (Undo)
+        window.undoAction = () => {
+            if(historyStack.length === 0) return alert("已經是第一題了");
+            const prevIndex = historyStack.pop();
+            studyQueue.unshift(prevIndex); // 放回開頭
+            
+            // 視覺特效：從左邊飛進來
+            const cardEl = document.getElementById('active-card');
+            cardEl.style.transition = 'none';
+            cardEl.style.transform = 'translate(-150%, 0)';
+            renderCard(); // 先渲染內容
+            
+            setTimeout(() => {
+                cardEl.style.transition = 'transform 0.3s ease';
+                cardEl.style.transform = 'translate(0,0)';
+            }, 10);
+        };
+
+        // 下一題 (Skip - 不評分，直接放後面)
+        window.skipAction = () => {
+            if(studyQueue.length === 0) return;
+            
+            const cardEl = document.getElementById('active-card');
+            cardEl.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+            cardEl.style.transform = 'translate(150%, 0)'; // 像簡單一樣飛出去
+            cardEl.style.opacity = '0';
+
+            const currentIndex = studyQueue.shift();
+            historyStack.push(currentIndex);
+            studyQueue.push(currentIndex); // 放到最後面
+
             setTimeout(() => {
                 cardEl.style.transition = 'none';
                 renderCard();
@@ -505,20 +717,66 @@
         cardEl.addEventListener('touchend', e => {
             const dx = e.changedTouches[0].clientX - touchStartX;
             const dy = e.changedTouches[0].clientY - touchStartY;
-            
-            // 判定滑動方向
             if(dx < -100) handleAction('left');
             else if(dx > 100) handleAction('right');
             else if(dy > 100) handleAction('down');
             else {
-                // 回彈
                 cardEl.style.transition = 'transform 0.3s ease';
                 cardEl.style.transform = 'translate(0,0)';
                 cardEl.classList.remove('swipe-left', 'swipe-right', 'swipe-down');
             }
         });
 
-        // === 6. 其他 UI 功能 ===
+        // === 6. 熟悉度列表 ===
+        window.openStatusList = () => {
+            if(!currentBankId) return alert("請先選擇題庫");
+            openModal('modal-status');
+            const tbody = document.getElementById('status-list-body');
+            tbody.innerHTML = '';
+            
+            const now = Date.now();
+            allCards.forEach((c, idx) => {
+                const p = progressMap[idx];
+                let statusHtml = '<span class="tag-new">新題目</span>';
+                let sortTime = 0;
+
+                if(p && p.nextReview) {
+                    const diff = p.nextReview - now;
+                    if(diff <= 0) {
+                        statusHtml = '<span class="tag-review">需複習</span>';
+                        sortTime = -1;
+                    } else {
+                        const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+                        statusHtml = `<span class="tag-future">${days} 天後</span>`;
+                        sortTime = diff;
+                    }
+                }
+
+                const tr = document.createElement('tr');
+                tr.className = 'status-row';
+                tr.onclick = () => jumpToCard(idx);
+                tr.innerHTML = `
+                    <td>${idx+1}</td>
+                    <td style="max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${c.q}</td>
+                    <td>${statusHtml}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        };
+
+        // 從列表跳轉到該題
+        window.jumpToCard = (index) => {
+            // 強制將該題插入隊列首位
+            // 先檢查是否在隊列中，若在則移除
+            const inQueueIdx = studyQueue.indexOf(index);
+            if(inQueueIdx > -1) studyQueue.splice(inQueueIdx, 1);
+            
+            studyQueue.unshift(index);
+            closeModal('modal-status');
+            renderCard();
+        };
+
+        // === 其他 UI 功能 ===
         window.switchBank = (id) => { selectBank(id); toggleSidebar(false); };
         
         function renderSidebar() {
@@ -557,7 +815,7 @@
             await updateDoc(doc(db, 'public_question_banks', b2.id), { order: o1 });
         };
 
-        window.cycleMask = () => { maskLevel = maskLevel===3 ? 1 : maskLevel+1; renderCard(); document.getElementById('mask-btn').innerText = `遮罩: Lv${maskLevel}`; };
+        window.cycleMask = () => { maskLevel = maskLevel===3 ? 1 : maskLevel+1; renderCard(); };
         
         // 管理員功能
         window.toggleAdmin = () => {
@@ -646,5 +904,4 @@
     </script>
 </body>
 </html>
-
 
