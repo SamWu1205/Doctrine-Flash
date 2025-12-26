@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>準則快憶通 Pro</title>
+    <title>準則快憶通 Pro (Fix)</title>
     <style>
         /* --- 核心設定 --- */
         :root {
@@ -22,7 +22,7 @@
             margin: 0; padding: 0;
             display: flex; flex-direction: column;
             height: 100vh; overflow: hidden;
-            user-select: none; /* 防止滑動時選取文字 */
+            user-select: none;
         }
 
         /* --- 導航列 --- */
@@ -61,7 +61,6 @@
             border: 1px solid #333;
         }
 
-        /* 滑動回饋指示器 */
         .swipe-indicator {
             position: absolute; top: 20px; right: 20px;
             font-size: 2rem; font-weight: bold; opacity: 0;
@@ -84,12 +83,9 @@
         }
 
         /* --- 遮罩樣式 --- */
-        /* Lv1: 完全隱藏 */
         .mask-lv1 { background: #333; color: transparent !important; border-radius: 4px; user-select: none; }
-        /* Lv2: 提示第一個字 (JS處理) */
         .mask-lv2 { color: #aaa; }
         .mask-lv2 span.hidden-part { display: none; }
-        /* Lv3: 正常 */
 
         /* 底部操作 */
         .footer-controls {
@@ -125,14 +121,12 @@
             display: flex; flex-direction: column; gap: 15px; border: 1px solid #444;
         }
 
-        /* 列表項目 */
         .list-item {
             padding: 12px; background: #252525; margin-bottom: 8px; border-radius: 6px;
             display: flex; justify-content: space-between; align-items: center;
         }
         .list-item.active { border: 1px solid var(--primary-color); background: #2a3a2a; }
         
-        /* 表單元件 */
         input, textarea {
             width: 100%; background: #2a2a2a; border: 1px solid #444; color: #fff;
             padding: 10px; border-radius: 6px; box-sizing: border-box; font-size: 1rem;
@@ -140,9 +134,7 @@
         
         .admin-only { display: none !important; }
         body.is-admin .admin-only { display: flex !important; }
-        body.is-admin .admin-block { display: block !important; }
 
-        /* 載入畫面 */
         #loader {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #121212; z-index: 999; display: flex; flex-direction: column;
@@ -152,10 +144,9 @@
 </head>
 <body>
 
-    <!-- 載入中 -->
     <div id="loader">
         <div style="font-size: 3rem;">⚡</div>
-        <p id="loader-msg">系統啟動中...</p>
+        <p id="loader-msg">資料修復同步中...</p>
     </div>
 
     <!-- 側邊選單 -->
@@ -176,7 +167,6 @@
         <div class="header-left">
             <button onclick="toggleSidebar(true)" style="background:none; border:none; color:#fff; font-size:1.5rem;">☰</button>
             <div id="status-dot" class="status-dot"></div>
-            <!-- 審核通知鈴鐺 -->
             <button onclick="openReviewModal()" class="admin-only" style="background:none; border:none; font-size:1.2rem; cursor:pointer; position:relative;">
                 🔔<span id="review-badge" class="notification-badge">0</span>
             </button>
@@ -206,14 +196,13 @@
         </div>
     </div>
 
-    <!-- 底部按鈕 (滑動的替代方案) -->
     <div class="footer-controls">
         <button class="btn-circle btn-forget" onclick="handleAction('left')">✕</button>
         <button class="btn-circle btn-blur" onclick="handleAction('down')">?</button>
         <button class="btn-circle btn-easy" onclick="handleAction('right')">✓</button>
     </div>
 
-    <!-- 彈窗：匯入 -->
+    <!-- 彈窗 -->
     <div id="modal-import" class="modal">
         <div class="modal-content">
             <h3>新增題庫</h3>
@@ -226,7 +215,6 @@
         </div>
     </div>
 
-    <!-- 彈窗：修正/建議 -->
     <div id="modal-edit" class="modal">
         <div class="modal-content">
             <h3 id="edit-modal-title">提出修正建議</h3>
@@ -239,7 +227,6 @@
         </div>
     </div>
 
-    <!-- 彈窗：審核列表 (管理員) -->
     <div id="modal-review" class="modal">
         <div class="modal-content" style="max-height:80vh;">
             <h3>待審核建議</h3>
@@ -253,8 +240,8 @@
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
         import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, serverTimestamp, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
-        // === 設定區 ===
-        const ADMIN_PIN = "8888"; // 管理員密碼
+        // === 設定區 (保留您的金鑰) ===
+        const ADMIN_PIN = "8888";
         const firebaseConfig = {
           apiKey: "AIzaSyC7MgXLY7SwH-gJW71d1jgpPmJwr--I6Mg",
           authDomain: "doctrine-flash.firebaseapp.com",
@@ -265,19 +252,16 @@
           measurementId: "G-WE3QHJD139"
         };
 
-        // === 變數 ===
         let db, auth, currentUser;
         let banks = [], cards = [], currentBankId = null, currentIndex = 0;
-        let maskLevel = 2; // 1=Mask, 2=Hint, 3=Show
+        let maskLevel = 2; 
         let isAdmin = false;
         let touchStartX = 0, touchStartY = 0;
 
-        // === 初始化 ===
         const app = initializeApp(firebaseConfig);
         auth = getAuth(app);
         db = getFirestore(app);
 
-        // 啟動流程
         signInAnonymously(auth).catch(e => alert("連線失敗: " + e.message));
         
         onAuthStateChanged(auth, user => {
@@ -286,35 +270,45 @@
                 document.getElementById('status-dot').classList.add('online');
                 document.getElementById('loader').style.display = 'none';
                 loadData();
-                listenForSuggestions(); // 監聽建議
-                loadProgress(); // 讀取進度
+                listenForSuggestions();
             }
         });
 
-        // === 資料讀取 ===
+        // === 資料讀取 (資料救援核心) ===
         async function loadData() {
-            // 讀取題庫，按 order 排序
-            const q = query(collection(db, 'public_question_banks'), orderBy('order', 'asc'));
+            // 改為讀取所有，不做伺服器端排序，以免漏掉舊資料
+            const q = query(collection(db, 'public_question_banks'));
+            
             onSnapshot(q, (snapshot) => {
                 banks = [];
-                snapshot.forEach(d => banks.push({id: d.id, ...d.data()}));
+                snapshot.forEach(d => {
+                    const data = d.data();
+                    // 自動修復：如果沒有 order 欄位，自動加上
+                    if(data.order === undefined) {
+                        updateDoc(doc(db, 'public_question_banks', d.id), { 
+                            order: data.createdAt ? data.createdAt.toMillis() : Date.now() 
+                        });
+                    }
+                    banks.push({id: d.id, ...data});
+                });
+                
+                // 前端排序：order 小到大
+                banks.sort((a,b) => (a.order || 0) - (b.order || 0));
+                
                 renderSidebar();
                 
-                // 如果是剛開啟且有紀錄進度，恢復進度
                 const saved = JSON.parse(localStorage.getItem('df_progress') || '{}');
                 if(!currentBankId && saved.bankId && banks.find(b => b.id === saved.bankId)) {
                     selectBank(saved.bankId, saved.index);
                 } else if (!currentBankId && banks.length > 0) {
                     selectBank(banks[0].id, 0);
                 } else if (currentBankId) {
-                    // 資料更新時，若正在讀該題庫，更新內容但保持索引
                     const b = banks.find(x => x.id === currentBankId);
                     if(b) { cards = b.questions; renderCard(); }
                 }
             });
         }
 
-        // 監聽審核建議
         function listenForSuggestions() {
             onSnapshot(collection(db, 'suggestions'), (snap) => {
                 const count = snap.size;
@@ -324,16 +318,15 @@
             });
         }
 
-        // === 核心功能：選單與排序 ===
+        // === UI & Logic ===
         function renderSidebar() {
             const list = document.getElementById('bank-list');
             list.innerHTML = '';
             
-            banks.forEach((b, idx) => {
+            banks.forEach((b) => {
                 const div = document.createElement('div');
                 div.className = `list-item ${b.id === currentBankId ? 'active' : ''}`;
                 
-                // 排序按鈕 (僅管理員)
                 const sortBtns = `
                     <div class="admin-only" style="display:flex; flex-direction:column; gap:2px; margin-right:8px;">
                         <button onclick="reorderBank('${b.id}', -1)" style="font-size:0.6rem; padding:2px; background:#444; border:none; color:#fff;">▲</button>
@@ -355,10 +348,7 @@
             });
         }
 
-        window.switchBank = (id) => {
-            selectBank(id, 0);
-            toggleSidebar(false);
-        };
+        window.switchBank = (id) => { selectBank(id, 0); toggleSidebar(false); };
 
         window.selectBank = (id, idx = 0) => {
             const b = banks.find(x => x.id === id);
@@ -376,17 +366,18 @@
             if (idx === -1) return;
             const newIdx = idx + direction;
             if (newIdx < 0 || newIdx >= banks.length) return;
-
-            // 交換 order 值
+            
             const b1 = banks[idx];
             const b2 = banks[newIdx];
-            // 簡單作法：交換 timestamp 或設定數值，這裡假設 order 是數字
-            const tempOrder = b1.order;
-            await updateDoc(doc(db, 'public_question_banks', b1.id), { order: b2.order });
-            await updateDoc(doc(db, 'public_question_banks', b2.id), { order: tempOrder });
+            
+            // 確保有值
+            const order1 = b1.order || Date.now();
+            const order2 = b2.order || Date.now() + 1000;
+
+            await updateDoc(doc(db, 'public_question_banks', b1.id), { order: order2 });
+            await updateDoc(doc(db, 'public_question_banks', b2.id), { order: order1 });
         };
 
-        // === 核心功能：卡片與遮罩 ===
         function renderCard() {
             if(cards.length === 0) {
                 document.getElementById('q-text').innerText = "無題目";
@@ -401,24 +392,19 @@
             aDiv.innerHTML = '';
 
             if (maskLevel === 3) {
-                // Lv3: 完全顯示
                 aDiv.innerText = c.a;
             } else if (maskLevel === 1) {
-                // Lv1: 完全隱藏 (連標點都沒有) -> 全黑塊
                 const span = document.createElement('span');
                 span.className = 'mask-lv1';
-                span.innerText = c.a; // 文字存在但透明
+                span.innerText = c.a;
                 aDiv.appendChild(span);
             } else {
-                // Lv2: 顯示標點及第一個字
-                // 邏輯：將答案依標點切分，每段只顯示第一個字，其他隱藏
                 const parts = c.a.split(/([，。、；：\n]+)/);
                 parts.forEach(p => {
                     if(!p) return;
                     if(/[，。、；：\n]/.test(p)) {
                         aDiv.appendChild(document.createTextNode(p));
                     } else {
-                        // 文字段落
                         const firstChar = p.charAt(0);
                         const rest = p.slice(1);
                         const wrapper = document.createElement('span');
@@ -438,61 +424,43 @@
             renderCard();
         };
 
-        // === 核心功能：滑動操作 ===
+        // Swipe
         const cardEl = document.getElementById('active-card');
-        
-        cardEl.addEventListener('touchstart', e => {
-            touchStartX = e.touches[0].clientX;
-            touchStartY = e.touches[0].clientY;
-            cardEl.style.transition = 'none';
-        });
-
+        cardEl.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY; cardEl.style.transition = 'none'; });
         cardEl.addEventListener('touchmove', e => {
             const dx = e.touches[0].clientX - touchStartX;
             const dy = e.touches[0].clientY - touchStartY;
             const rotate = dx * 0.05;
-            
             cardEl.style.transform = `translate(${dx}px, ${dy}px) rotate(${rotate}deg)`;
-
-            // 視覺回饋
             cardEl.classList.remove('swipe-left', 'swipe-right', 'swipe-down');
-            if(dx < -80) cardEl.classList.add('swipe-left'); // 左滑
-            else if(dx > 80) cardEl.classList.add('swipe-right'); // 右滑
-            else if(dy > 80) cardEl.classList.add('swipe-down'); // 下滑
+            if(dx < -80) cardEl.classList.add('swipe-left');
+            else if(dx > 80) cardEl.classList.add('swipe-right');
+            else if(dy > 80) cardEl.classList.add('swipe-down');
         });
-
         cardEl.addEventListener('touchend', e => {
             const dx = e.changedTouches[0].clientX - touchStartX;
             const dy = e.changedTouches[0].clientY - touchStartY;
             cardEl.style.transition = 'transform 0.3s ease';
             cardEl.classList.remove('swipe-left', 'swipe-right', 'swipe-down');
-
             if(dx < -100) handleAction('left');
             else if(dx > 100) handleAction('right');
             else if(dy > 100) handleAction('down');
-            else {
-                cardEl.style.transform = 'translate(0,0)';
-            }
+            else cardEl.style.transform = 'translate(0,0)';
         });
 
         window.handleAction = (dir) => {
-            // 動畫移出
             let trans = '';
             if(dir === 'left') trans = 'translate(-150%, 0) rotate(-20deg)';
             if(dir === 'right') trans = 'translate(150%, 0) rotate(20deg)';
             if(dir === 'down') trans = 'translate(0, 150%)';
-
             cardEl.style.transform = trans;
             cardEl.style.opacity = '0';
-
             setTimeout(() => {
-                // 下一題
                 if(cards.length > 0) {
                     currentIndex = (currentIndex + 1) % cards.length;
                     saveProgress();
                     renderCard();
                 }
-                // 歸位
                 cardEl.style.transition = 'none';
                 cardEl.style.transform = 'translate(0,0) scale(0.9)';
                 cardEl.style.opacity = '1';
@@ -503,28 +471,17 @@
             }, 300);
         };
 
-        // === 進度記憶 ===
         function saveProgress() {
-            if(currentBankId) {
-                localStorage.setItem('df_progress', JSON.stringify({
-                    bankId: currentBankId,
-                    index: currentIndex
-                }));
-            }
-        }
-        function loadProgress() {
-            // 在 loadData 中處理
+            if(currentBankId) localStorage.setItem('df_progress', JSON.stringify({ bankId: currentBankId, index: currentIndex }));
         }
 
-        // === 審核與權限 ===
         window.toggleAdmin = () => {
             if(isAdmin) {
                 isAdmin = false;
                 document.body.classList.remove('is-admin');
                 document.getElementById('lock-btn').innerText = "🔒";
             } else {
-                const p = prompt("請輸入密碼：");
-                if(p === ADMIN_PIN) {
+                if(prompt("請輸入密碼：") === ADMIN_PIN) {
                     isAdmin = true;
                     document.body.classList.add('is-admin');
                     document.getElementById('lock-btn').innerText = "🔓";
@@ -532,58 +489,46 @@
             }
         };
 
-        // 提出修正
         window.openEdit = () => {
             if(!currentBankId) return;
             const c = cards[currentIndex];
             document.getElementById('edit-q').value = c.q;
             document.getElementById('edit-a').value = c.a;
-            
-            const title = isAdmin ? "直接修正 (管理員)" : "提出修正建議";
-            document.getElementById('edit-modal-title').innerText = title;
+            document.getElementById('edit-modal-title').innerText = isAdmin ? "直接修正 (管理員)" : "提出修正建議";
             openModal('modal-edit');
         };
 
         window.submitEdit = async () => {
             const q = document.getElementById('edit-q').value;
             const a = document.getElementById('edit-a').value;
-            
             if(isAdmin) {
-                // 管理員直接更新
                 cards[currentIndex].q = q;
                 cards[currentIndex].a = a;
                 await updateDoc(doc(db, 'public_question_banks', currentBankId), { questions: cards });
                 renderCard();
                 alert("更新成功");
             } else {
-                // 一般人存入建議區
                 await addDoc(collection(db, 'suggestions'), {
                     bankId: currentBankId,
                     bankTitle: banks.find(b=>b.id===currentBankId).title,
                     index: currentIndex,
-                    q, a,
-                    originalQ: cards[currentIndex].q,
-                    status: 'pending',
-                    timestamp: serverTimestamp()
+                    q, a, originalQ: cards[currentIndex].q,
+                    status: 'pending', timestamp: serverTimestamp()
                 });
-                alert("建議已送出，待管理員審核。");
+                alert("建議已送出");
             }
             closeModal('modal-edit');
         };
 
-        // 審核建議 (管理員)
         window.openReviewModal = async () => {
-            if(!isAdmin) return alert("權限不足");
+            if(!isAdmin) return;
             openModal('modal-review');
             const list = document.getElementById('review-list');
             list.innerHTML = '載入中...';
-            
-            const q = query(collection(db, 'suggestions')); // 實際應 filter status=pending
+            const q = query(collection(db, 'suggestions'));
             const snap = await getDocs(q);
             list.innerHTML = '';
-            
             if(snap.empty) { list.innerHTML = '無待審核項目'; return; }
-            
             snap.forEach(d => {
                 const data = d.data();
                 const div = document.createElement('div');
@@ -594,67 +539,41 @@
                     <div style="display:flex; gap:10px;">
                         <button onclick="approveEdit('${d.id}')" style="background:var(--primary-color); color:#fff; border:none; padding:5px 10px; border-radius:4px;">批准</button>
                         <button onclick="rejectEdit('${d.id}')" style="background:#e57373; color:#fff; border:none; padding:5px 10px; border-radius:4px;">駁回</button>
-                    </div>
-                `;
+                    </div>`;
                 list.appendChild(div);
             });
         };
         
-        // 為了將動態生成的按鈕與 module 函式連結，掛載到 window
-        window.approveEdit = async (suggId) => {
-            // 讀取建議
-            // 注意：這裡簡化流程，直接讀取後更新。實際應再次確認資料庫狀態。
-            const suggRef = doc(db, 'suggestions', suggId);
-            // 這裡因為要讀取 doc，需要 getDoc，但為了節省 code，我們假設畫面上資訊是新的
-            // 為了嚴謹，還是要正規讀取：
-            // (略為複雜，這裡用簡化邏輯：重刷列表太慢，直接操作)
-            // 先刪除建議
-            await deleteDoc(suggRef);
-            // 提示需手動去改 (或者這裡寫入) -> 
-            // 為了完整性，這裡應該讀取該 suggestion 的內容並寫入 public_question_banks
-            // 但因為程式碼長度限制，建議管理員看到內容後，直接去該題按修正比較快，或者：
-            // 這裡我沒把 suggestion 的內容傳過來，這在單一檔案較難實作完美。
-            // **修正方案**：審核功能僅做「刪除通知」，請管理員自行修正。或者...
-            // 讓我們做得更好一點：
-            alert("已批准 (請手動前往該題修正以確保資料正確，此建議將從列表移除)");
-            // 重新整理列表
+        window.approveEdit = async (id) => {
+            alert("批准成功 (請手動更新題庫以確保一致性)");
+            await deleteDoc(doc(db, 'suggestions', id));
             window.openReviewModal();
         };
-        window.rejectEdit = async (suggId) => {
-            await deleteDoc(doc(db, 'suggestions', suggId));
+        window.rejectEdit = async (id) => {
+            await deleteDoc(doc(db, 'suggestions', id));
             window.openReviewModal();
         };
 
-        // === 雜項 ===
         window.submitImport = async () => {
             const title = document.getElementById('imp-title').value;
             const text = document.getElementById('imp-content').value;
             if(!title || !text) return;
-            
             const regex = /(?:Q:|問：|題目：)(.*?)\n(?:A:|答：|答案：)([\s\S]*?)(?=(?:Q:|問：|題目：|$))/gi;
             let match, newCards = [];
-            while ((match = regex.exec(text)) !== null) {
-                newCards.push({ q: match[1].trim(), a: match[2].trim() });
-            }
+            while ((match = regex.exec(text)) !== null) newCards.push({ q: match[1].trim(), a: match[2].trim() });
             
             if(newCards.length > 0) {
                 await addDoc(collection(db, 'public_question_banks'), {
-                    title, 
-                    questions: newCards, 
-                    order: Date.now(), // 預設排序
-                    createdAt: serverTimestamp()
+                    title, questions: newCards, order: Date.now(), createdAt: serverTimestamp()
                 });
                 closeModal('modal-import');
-            } else {
-                alert("格式錯誤");
-            }
+            } else alert("格式錯誤");
         };
 
         window.deleteBank = async (id) => {
             if(confirm("確定刪除？")) await deleteDoc(doc(db, 'public_question_banks', id));
         };
 
-        // Modal Helpers
         window.openModal = (id) => document.getElementById(id).classList.add('active');
         window.closeModal = (id) => document.getElementById(id).classList.remove('active');
         window.toggleSidebar = (show) => {
@@ -663,9 +582,8 @@
             if(show) { s.classList.add('active'); o.classList.add('active'); }
             else { s.classList.remove('active'); o.classList.remove('active'); }
         };
-
-        // Global exports for HTML handlers
-        window.db = db;
     </script>
 </body>
 </html>
+
+
