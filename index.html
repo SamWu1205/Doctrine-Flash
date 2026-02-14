@@ -23,13 +23,15 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             margin: 0; padding: 0;
             display: flex; flex-direction: column;
-            height: 100vh; overflow: hidden;
+            height: 100vh;
+            overflow: hidden;
             user-select: none;
         }
 
         /* --- 導航列 --- */
         .header {
-            display: flex; justify-content: space-between; align-items: center;
+            display: flex;
+            justify-content: space-between; align-items: center;
             padding: 10px 15px; background-color: var(--surface-color);
             border-bottom: 1px solid #333; z-index: 20;
             height: 50px;
@@ -38,32 +40,38 @@
         .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #555; display: inline-block; }
         .status-dot.online { background: #4caf50; box-shadow: 0 0 5px #4caf50; }
         .notification-badge {
-            background: var(--danger-color); color: white; font-size: 0.7rem;
+            background: var(--danger-color);
+            color: white; font-size: 0.7rem;
             padding: 2px 6px; border-radius: 10px; margin-left: 5px; display: none;
         }
         .notification-badge.show { display: inline-block; }
 
-        /* --- 工具列 (新功能) --- */
+        /* --- 工具列 --- */
         .toolbar {
-            display: flex; gap: 8px; overflow-x: auto; padding: 10px;
+            display: flex;
+            gap: 8px; overflow-x: auto; padding: 10px;
             background: #181818; border-bottom: 1px solid #333;
         }
         .tool-btn {
-            background: #333; color: #ccc; border: 1px solid #444;
+            background: #333;
+            color: #ccc; border: 1px solid #444;
             padding: 5px 12px; border-radius: 15px; font-size: 0.85rem;
-            white-space: nowrap; cursor: pointer; display: flex; align-items: center; gap: 5px;
+            white-space: nowrap; cursor: pointer; display: flex;
+            align-items: center; gap: 5px;
         }
         .tool-btn:active { background: #444; }
 
         /* --- 卡片主體 (滑動區) --- */
         .main-container {
-            flex: 1; position: relative;
+            flex: 1;
+            position: relative;
             display: flex; justify-content: center; align-items: center;
             overflow: hidden; perspective: 1000px;
         }
 
         .card {
-            width: 90%; max-width: 600px; height: 85%;
+            width: 90%;
+            max-width: 600px; height: 85%;
             background: var(--surface-color);
             border-radius: 16px;
             padding: 20px;
@@ -77,60 +85,106 @@
 
         /* 任務完成的空狀態 */
         .empty-state {
-            text-align: center; color: #777; display: none;
+            text-align: center;
+            color: #777; display: none;
         }
         .empty-state.show { display: block; }
         .empty-state h2 { color: var(--primary-color); margin-bottom: 10px; }
 
         .swipe-indicator {
-            position: absolute; top: 20px; right: 20px;
+            position: absolute;
+            top: 20px; right: 20px;
             font-size: 2rem; font-weight: bold; opacity: 0;
             border: 4px solid; padding: 5px 10px; border-radius: 8px;
-            transform: rotate(15deg); pointer-events: none;
+            transform: rotate(15deg);
+            pointer-events: none;
         }
         .swipe-left .indicator-forget { opacity: 1; color: var(--danger-color); border-color: var(--danger-color); }
         .swipe-right .indicator-easy { opacity: 1; color: var(--primary-color); border-color: var(--primary-color); }
         .swipe-down .indicator-blur { opacity: 1; color: var(--warning-color); border-color: var(--warning-color); top: auto; bottom: 20px; }
 
         .question-meta {
-            font-size: 0.8rem; color: #666; margin-bottom: 5px; display: flex; justify-content: space-between;
+            font-size: 0.8rem;
+            color: #666; margin-bottom: 5px; display: flex; justify-content: space-between;
         }
         .question-box {
-            font-size: 1.3rem; font-weight: bold; color: #81c784;
+            font-size: 1.3rem;
+            font-weight: bold; color: #81c784;
             margin-bottom: 20px; flex-shrink: 0;
         }
 
         .answer-box {
-            font-size: 1.15rem; line-height: 1.8;
+            font-size: 1.15rem;
+            line-height: 1.8;
             flex: 1; overflow-y: auto; position: relative;
             white-space: pre-wrap;
         }
 
-        /* --- 遮罩樣式 --- */
-        .mask-lv1 { background: #333; color: transparent !important; border-radius: 4px; user-select: none; }
+        /* --- 遮罩樣式優化 (長度一致、背景融合) --- */
+        .mask-lv1, .mask-hidden {
+            display: inline-block;
+            width: 60px; /* 固定寬度，隱藏字數資訊 */
+            height: 1.2rem;
+            background: var(--surface-color); /* 與卡片背景相同 */
+            color: transparent !important;
+            user-select: none;
+            vertical-align: bottom;
+            border-bottom: 2px solid #555; /* 微微的底線提示這裡有挖空 */
+            margin: 0 4px;
+        }
         .mask-lv2 { color: #aaa; }
-        .mask-lv2 span.hidden-part { display: none; }
 
-        /* --- 底部控制列 (新功能) --- */
+        /* --- 小考模式手寫區與對答案 --- */
+        .quiz-area {
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 15px;
+            width: 100%;
+        }
+        .quiz-area.active { display: flex; }
+        .quiz-input {
+            width: 100%; height: 80px;
+            background: #181818; border: 1px solid #444; color: #fff;
+            padding: 10px; border-radius: 8px; resize: none; font-size: 1.1rem;
+            box-sizing: border-box;
+        }
+        .quiz-submit-btn {
+            padding: 10px; background: var(--secondary-color); border: none;
+            color: #fff; border-radius: 6px; font-weight: bold; cursor: pointer;
+        }
+        .quiz-submit-btn:active { background: #1976d2; }
+
+        /* 對答案差異標示 */
+        .diff-correct { color: #4caf50; }
+        .diff-wrong { color: var(--danger-color); text-decoration: line-through; opacity: 0.8; }
+        .diff-missing { color: var(--danger-color); font-weight: bold; border-bottom: 1px dashed var(--danger-color); }
+
+        /* --- 底部控制列 --- */
         .control-bar {
-            display: flex; justify-content: space-between; align-items: center;
+            display: flex;
+            justify-content: space-between; align-items: center;
             margin-top: auto; padding-top: 15px; border-top: 1px solid #333;
         }
         .nav-btn {
-            background: #2a2a2a; border: 1px solid #444; color: #fff;
+            background: #2a2a2a;
+            border: 1px solid #444; color: #fff;
             width: 40px; height: 40px; border-radius: 50%;
             display: flex; justify-content: center; align-items: center;
-            font-size: 1.2rem; cursor: pointer;
+            font-size: 1.2rem;
+            cursor: pointer;
         }
         .nav-btn:active { background: #444; }
 
         /* 側邊欄與 Modal */
         .sidebar-overlay, .modal {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.8); z-index: 100; display: none;
         }
         .sidebar {
-            position: fixed; top: 0; left: 0; width: 85%; max-width: 320px; height: 100%;
+            position: fixed;
+            top: 0; left: 0; width: 85%; max-width: 320px; height: 100%;
             background: var(--surface-color); z-index: 101;
             transform: translateX(-100%); transition: transform 0.3s;
             display: flex; flex-direction: column; border-right: 1px solid #333;
@@ -139,26 +193,30 @@
         .modal.active, .sidebar-overlay.active { display: flex; justify-content: center; align-items: center; }
         
         .modal-content {
-            background: #1e1e1e; padding: 20px; border-radius: 12px; width: 90%; max-width: 500px;
+            background: #1e1e1e;
+            padding: 20px; border-radius: 12px; width: 90%; max-width: 500px;
             display: flex; flex-direction: column; gap: 15px; border: 1px solid #444; max-height: 85vh;
         }
 
         .list-item {
-            padding: 12px; background: #252525; margin-bottom: 8px; border-radius: 6px;
+            padding: 12px;
+            background: #252525; margin-bottom: 8px; border-radius: 6px;
             display: flex; justify-content: space-between; align-items: center;
         }
         .list-item.active { border: 1px solid var(--primary-color); background: #2a3a2a; }
         
         /* 表格樣式 (熟悉度) */
         .status-table {
-            width: 100%; border-collapse: collapse; font-size: 0.9rem;
+            width: 100%;
+            border-collapse: collapse; font-size: 0.9rem;
         }
         .status-table th { text-align: left; color: #888; padding: 5px; border-bottom: 1px solid #444; }
         .status-table td { padding: 8px 5px; border-bottom: 1px solid #333; color: #ddd; }
         .status-row:active { background: #333; }
         
         input, textarea, select {
-            width: 100%; background: #2a2a2a; border: 1px solid #444; color: #fff;
+            width: 100%;
+            background: #2a2a2a; border: 1px solid #444; color: #fff;
             padding: 10px; border-radius: 6px; box-sizing: border-box; font-size: 1rem;
         }
         .row-inputs { display: flex; gap: 10px; }
@@ -167,17 +225,21 @@
         body.is-admin .admin-only { display: flex !important; }
 
         #loader {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
             background: #121212; z-index: 999; display: flex; flex-direction: column;
-            justify-content: center; align-items: center; color: #fff;
+            justify-content: center; align-items: center;
+            color: #fff;
         }
         
         /* 模式切換按鈕 */
         .mode-switch {
-            display: flex; background: #333; border-radius: 20px; padding: 2px; margin-right: 10px;
+            display: flex;
+            background: #333; border-radius: 20px; padding: 2px; margin-right: 10px;
         }
         .mode-btn {
-            padding: 5px 12px; border-radius: 18px; border: none; background: transparent; color: #aaa; font-size: 0.8rem; cursor: pointer;
+            padding: 5px 12px;
+            border-radius: 18px; border: none; background: transparent; color: #aaa; font-size: 0.8rem; cursor: pointer;
         }
         .mode-btn.active { background: var(--primary-color); color: #fff; }
         
@@ -194,7 +256,6 @@
         <p id="loader-msg">系統啟動中...</p>
     </div>
 
-    <!-- 側邊選單 -->
     <div class="sidebar-overlay" onclick="toggleSidebar(false)"></div>
     <div class="sidebar" id="sidebar">
         <div style="padding:15px; border-bottom:1px solid #333; display:flex; justify-content:space-between; align-items:center;">
@@ -207,7 +268,6 @@
         </div>
     </div>
 
-    <!-- 頂部 -->
     <div class="header">
         <div class="header-left">
             <button onclick="toggleSidebar(true)" style="background:none; border:none; color:#fff; font-size:1.5rem;">☰</button>
@@ -217,7 +277,6 @@
             </button>
         </div>
         
-        <!-- 學習模式切換 -->
         <div class="mode-switch">
             <button class="mode-btn active" id="mode-smart" onclick="setMode('smart')">智慧</button>
             <button class="mode-btn" id="mode-cram" onclick="setMode('cram')">瀏覽</button>
@@ -226,16 +285,14 @@
         <button onclick="toggleAdmin()" id="lock-btn" style="background:none; border:none; font-size:1.2rem; cursor:pointer;">🔒</button>
     </div>
 
-    <!-- 工具列 -->
     <div class="toolbar">
         <button class="tool-btn" onclick="openSettings()">⚙️ 範圍/隨機</button>
         <button class="tool-btn" onclick="openStatusList()">📋 熟悉度/列表</button>
+        <button class="tool-btn" onclick="toggleQuizMode()" id="quiz-mode-btn">✍️ 小考模式: 關</button>
     </div>
 
-    <!-- 卡片區 -->
     <div class="main-container" id="card-area">
         
-        <!-- 任務完成畫面 -->
         <div id="empty-state" class="empty-state">
             <div style="font-size: 4rem;">🎉</div>
             <h2>任務完成</h2>
@@ -246,7 +303,6 @@
             </div>
         </div>
 
-        <!-- 實體卡片 -->
         <div class="card" id="active-card">
             <div class="swipe-indicator indicator-forget" style="border-color:var(--danger-color); color:var(--danger-color);">忘記</div>
             <div class="swipe-indicator indicator-easy" style="border-color:var(--primary-color); color:var(--primary-color);">簡單</div>
@@ -260,6 +316,11 @@
             <div class="question-box" id="q-text">請選擇題庫</div>
             
             <div class="answer-box" id="a-text"></div>
+
+            <div class="quiz-area" id="quiz-area">
+                <textarea id="quiz-input" class="quiz-input" placeholder="請在此輸入答案..."></textarea>
+                <button class="quiz-submit-btn" onclick="submitQuiz()">交卷並對答案</button>
+            </div>
             
             <div class="control-bar">
                 <button class="nav-btn" onclick="undoAction()">↩</button>
@@ -278,7 +339,6 @@
         </div>
     </div>
 
-    <!-- 範圍設定 Modal -->
     <div id="modal-settings" class="modal">
         <div class="modal-content">
             <h3>📖 抽題範圍設定</h3>
@@ -299,6 +359,15 @@
             <div id="random-count-box" style="display:none; margin-top:5px;">
                 <label style="color:#aaa; font-size:0.9rem;">抽取數量</label>
                 <input type="number" id="set-count" value="20">
+                
+                <div style="margin-top:10px;">
+                    <label style="color:#aaa; font-size:0.9rem;">出題佔比 (易/中/難 %) 加總為100</label>
+                    <div class="row-inputs" style="margin-top:5px;">
+                        <input type="number" id="set-easy" placeholder="易" value="30">
+                        <input type="number" id="set-mid" placeholder="中" value="40">
+                        <input type="number" id="set-hard" placeholder="難" value="30">
+                    </div>
+                </div>
             </div>
 
             <div style="display:flex; gap:10px; margin-top:15px;">
@@ -308,7 +377,6 @@
         </div>
     </div>
 
-    <!-- 熟悉度列表 Modal -->
     <div id="modal-status" class="modal">
         <div class="modal-content">
             <h3>📊 題目熟悉度一覽</h3>
@@ -328,7 +396,6 @@
         </div>
     </div>
 
-    <!-- 其他 Modals (Import, Edit, Review) -->
     <div id="modal-import" class="modal">
         <div class="modal-content">
             <h3>新增題庫</h3>
@@ -368,6 +435,7 @@
 
         // === 設定區 ===
         const ADMIN_PIN = "1001";
+        
         const firebaseConfig = {
           apiKey: "AIzaSyC7MgXLY7SwH-gJW71d1jgpPmJwr--I6Mg",
           authDomain: "doctrine-flash.firebaseapp.com",
@@ -389,16 +457,13 @@
         let isAdmin = false;
         let touchStartX = 0, touchStartY = 0;
         let studyMode = 'smart'; 
-        let progressMap = {}; 
+        let progressMap = {};
         
-        // 篩選設定
         let filterConfig = {
-            active: false,
-            start: 1,
-            end: 0,
-            isRandom: false,
-            randomCount: 20
+            active: false, start: 1, end: 0, isRandom: false, randomCount: 20,
+            ratioEasy: 30, ratioMid: 40, ratioHard: 30
         };
+        let isQuizMode = false; // 小考模式狀態
 
         // === 初始化 ===
         const app = initializeApp(firebaseConfig);
@@ -425,7 +490,7 @@
                 snapshot.forEach(d => {
                     const data = d.data();
                     if(data.order === undefined) { 
-                         updateDoc(doc(db, 'public_question_banks', d.id), { order: Date.now() });
+                        updateDoc(doc(db, 'public_question_banks', d.id), { order: Date.now() });
                     }
                     banks.push({id: d.id, ...data});
                 });
@@ -447,9 +512,8 @@
             currentBankId = id;
             allCards = b.questions || [];
             localStorage.setItem('df_progress', JSON.stringify({ bankId: id }));
-
             // 重置篩選預設值
-            filterConfig = { active: false, start: 1, end: allCards.length, isRandom: false, randomCount: 20 };
+            filterConfig = { active: false, start: 1, end: allCards.length, isRandom: false, randomCount: 20, ratioEasy: 30, ratioMid: 40, ratioHard: 30 };
             
             // 讀取進度
             const progRef = doc(db, 'users', currentUser.uid, 'progress', id);
@@ -471,7 +535,7 @@
         window.openSettings = (action) => {
             if(!currentBankId) return alert("請先選擇題庫");
             if(action === 'reset') {
-                filterConfig = { active: false, start: 1, end: allCards.length, isRandom: false, randomCount: 20 };
+                filterConfig = { active: false, start: 1, end: allCards.length, isRandom: false, randomCount: 20, ratioEasy: 30, ratioMid: 40, ratioHard: 30 };
                 buildQueue();
                 return;
             }
@@ -493,13 +557,19 @@
             const e = parseInt(document.getElementById('set-end').value) || allCards.length;
             const rnd = document.getElementById('set-random').checked;
             const cnt = parseInt(document.getElementById('set-count').value) || 20;
+            const easy = parseInt(document.getElementById('set-easy').value) || 0;
+            const mid = parseInt(document.getElementById('set-mid').value) || 0;
+            const hard = parseInt(document.getElementById('set-hard').value) || 0;
 
             filterConfig = {
                 active: true,
                 start: Math.max(1, s),
                 end: Math.min(allCards.length, e),
                 isRandom: rnd,
-                randomCount: cnt
+                randomCount: cnt,
+                ratioEasy: easy,
+                ratioMid: mid,
+                ratioHard: hard
             };
             
             buildQueue();
@@ -510,41 +580,58 @@
             studyQueue = [];
             historyStack = []; // 清空歷史
             const now = Date.now();
-            
-            // 1. 先建立候選池 (根據範圍)
             let candidates = [];
+
+            // 1. 先建立候選池 (根據範圍)
             for(let i=0; i<allCards.length; i++) {
-                // 題號是 i+1
                 if(i + 1 >= filterConfig.start && i + 1 <= filterConfig.end) {
                     candidates.push(i);
                 }
             }
 
-            // 2. 根據模式過濾
-            let filtered = [];
-            if (studyMode === 'cram' || filterConfig.active) {
-                // 瀏覽模式或有自訂範圍：全部候選都加入
-                filtered = candidates;
-            } else {
-                // 智慧模式且無自訂範圍：只加入到期卡
-                filtered = candidates.filter(i => {
-                    const nextReview = progressMap[i]?.nextReview || 0;
-                    return nextReview <= now;
-                });
-            }
-
-            // 3. 隨機處理
+            // 2. 隨機與比例處理
             if(filterConfig.isRandom) {
-                // Shuffle
-                for (let i = filtered.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [filtered[i], filtered[j]] = [filtered[j], filtered[i]];
-                }
-                // 切割數量
-                filtered = filtered.slice(0, filterConfig.randomCount);
-            }
+                // 將候選名單分為 易(interval>5), 中(0<interval<=5), 難(interval==0/無)
+                let easyPool=[], midPool=[], hardPool=[];
+                candidates.forEach(i => {
+                    const inv = progressMap[i]?.interval || 0;
+                    if(inv === 0) hardPool.push(i);
+                    else if(inv <= 5) midPool.push(i);
+                    else easyPool.push(i);
+                });
 
-            studyQueue = filtered;
+                // 打亂陣列的 Helper
+                const shuffle = (arr) => arr.sort(() => 0.5 - Math.random());
+                shuffle(easyPool); shuffle(midPool); shuffle(hardPool);
+
+                // 計算各難度應抽數量
+                let total = filterConfig.randomCount;
+                let cEasy = Math.floor(total * (filterConfig.ratioEasy / 100));
+                let cMid = Math.floor(total * (filterConfig.ratioMid / 100));
+                let cHard = total - cEasy - cMid; // 剩餘給難
+
+                // 如果某個池不夠，就從其他池補
+                let finalPool = [
+                    ...easyPool.splice(0, cEasy),
+                    ...midPool.splice(0, cMid),
+                    ...hardPool.splice(0, cHard)
+                ];
+                
+                // 若數量還是不夠設定值，把剩下的亂序補上
+                const leftovers = shuffle([...easyPool, ...midPool, ...hardPool]);
+                while(finalPool.length < total && leftovers.length > 0) {
+                    finalPool.push(leftovers.pop());
+                }
+
+                studyQueue = shuffle(finalPool);
+            } else {
+                // 智慧模式且無自訂範圍：只加入到期卡；否則全加
+                if (studyMode === 'smart' && !filterConfig.active) {
+                    studyQueue = candidates.filter(i => (progressMap[i]?.nextReview || 0) <= now);
+                } else {
+                    studyQueue = candidates;
+                }
+            }
             renderCard();
         }
 
@@ -554,8 +641,8 @@
             const emptyEl = document.getElementById('empty-state');
             const qCount = document.getElementById('queue-count');
             const maskBtn = document.getElementById('mask-btn');
-
-            maskBtn.innerText = `遮罩: Lv${maskLevel}`;
+            const quizArea = document.getElementById('quiz-area');
+            const quizInput = document.getElementById('quiz-input');
 
             if(studyQueue.length === 0) {
                 cardEl.style.display = 'none';
@@ -573,22 +660,25 @@
 
             const idx = studyQueue[0]; 
             const c = allCards[idx];
-            
             document.getElementById('q-index').innerText = `#${idx + 1}`;
             document.getElementById('q-text').innerText = c.q;
             
             const aDiv = document.getElementById('a-text');
             aDiv.innerHTML = '';
-            
-            // 遮罩邏輯
-            if (maskLevel === 3) {
+
+            // UI 控制：小考模式切換
+            maskBtn.innerText = `遮罩: Lv${maskLevel}`;
+            maskBtn.style.display = isQuizMode ? 'none' : 'block';
+            quizArea.classList.toggle('active', isQuizMode);
+            quizInput.value = ''; // 清空輸入框
+
+            // 遮罩與文字渲染邏輯
+            if (isQuizMode) {
+                aDiv.innerHTML = '<span style="color:#666; font-size:0.9rem;">(小考模式：請在下方作答並交卷)</span>';
+            } else if (maskLevel === 3) {
                 aDiv.innerText = c.a;
             } else if (maskLevel === 1) {
-                const span = document.createElement('span');
-                span.className = 'mask-lv1';
-                span.innerText = c.a || "無答案"; // 防止空字串變為不可見
-                if(!c.a) span.innerText = "(無內容)";
-                aDiv.appendChild(span);
+                aDiv.innerHTML = `<span class="mask-lv1"></span>`; 
             } else {
                 const parts = (c.a || "").split(/([，。、；：\n]+)/);
                 parts.forEach(p => {
@@ -596,10 +686,10 @@
                     if(/[，。、；：\n]/.test(p)) aDiv.appendChild(document.createTextNode(p));
                     else {
                         const first = p.charAt(0);
-                        const rest = p.slice(1);
                         const wrapper = document.createElement('span');
                         wrapper.className = 'mask-lv2';
-                        wrapper.innerHTML = `<span style="color:#e0e0e0">${first}</span><span style="background:#333; color:transparent; border-radius:2px;">${rest}</span>`;
+                        // 使用固定大小的假區塊隱藏真實字數
+                        wrapper.innerHTML = `<span style="color:#e0e0e0">${first}</span><span class="mask-hidden"></span>`;
                         aDiv.appendChild(wrapper);
                     }
                 });
@@ -608,10 +698,68 @@
 
         // === 4. 動作與導航 ===
         
+        // 切換小考模式
+        window.toggleQuizMode = () => {
+            isQuizMode = !isQuizMode;
+            document.getElementById('quiz-mode-btn').innerText = isQuizMode ? '✍️ 小考模式: 開' : '✍️ 小考模式: 關';
+            renderCard();
+        };
+
+        // 交卷並對答案
+        window.submitQuiz = () => {
+            if(studyQueue.length === 0) return;
+            const c = allCards[studyQueue[0]];
+            const target = (c.a || "").trim();
+            const input = document.getElementById('quiz-input').value.trim();
+            
+            // 使用 LCS (最長共同子序列) 演算法標示差異
+            const diffHtml = generateDiffHtml(target, input);
+            
+            const aDiv = document.getElementById('a-text');
+            aDiv.innerHTML = `
+                <div style="font-size:0.9rem; color:#aaa; margin-bottom:5px;">比對結果：</div>
+                <div style="line-height:1.6; font-size:1.1rem; padding-bottom:10px; border-bottom:1px solid #333;">${diffHtml}</div>
+                <div style="margin-top:10px; font-size:0.9rem; color:#aaa;">原正確答案：</div>
+                <div style="color:#fff;">${target}</div>
+            `;
+            // 隱藏輸入區，讓使用者專心看答案並評分滑動
+            document.getElementById('quiz-area').classList.remove('active');
+        };
+
+        // 核心文字比對演算法 (動態規劃)
+        function generateDiffHtml(correct, user) {
+            let m = correct.length, n = user.length;
+            let dp = Array(m+1).fill(0).map(()=>Array(n+1).fill(0));
+            
+            for(let i=1; i<=m; i++) {
+                for(let j=1; j<=n; j++) {
+                    if(correct[i-1] === user[j-1]) dp[i][j] = dp[i-1][j-1] + 1;
+                    else dp[i][j] = Math.max(dp[i-1][j], dp[i][j-1]);
+                }
+            }
+            
+            let i = m, j = n, res = [];
+            while(i > 0 || j > 0) {
+                if(i > 0 && j > 0 && correct[i-1] === user[j-1]) {
+                    // 打對的字 (顯示為綠色)
+                    res.unshift(`<span class="diff-correct">${correct[i-1]}</span>`);
+                    i--; j--;
+                } else if(j > 0 && (i === 0 || dp[i][j-1] >= dp[i-1][j])) {
+                    // 使用者多打的字 (顯示為紅色刪除線)
+                    res.unshift(`<span class="diff-wrong">${user[j-1]}</span>`);
+                    j--;
+                } else if(i > 0 && (j === 0 || dp[i][j-1] < dp[i-1][j])) {
+                    // 使用者漏打/錯打的正確字 (顯示為紅色虛底線)
+                    res.unshift(`<span class="diff-missing">${correct[i-1]}</span>`);
+                    i--;
+                }
+            }
+            return res.join('');
+        }
+
         // 評分與滑動
         window.handleAction = async (dir) => {
             if(studyQueue.length === 0) return;
-
             const cardEl = document.getElementById('active-card');
             let trans = '';
             if(dir === 'left') trans = 'translate(-150%, 0) rotate(-20deg)'; // 忘記
@@ -626,18 +774,17 @@
             historyStack.push(currentIndex); // 存入歷史，供上一題使用
             
             const now = Date.now();
-            
             // 演算法計算
             if (studyMode === 'smart') {
                 let interval = progressMap[currentIndex]?.interval || 0;
                 let nextReview = 0;
 
                 if (dir === 'right') { 
-                    if (interval === 0) interval = 1; 
+                    if (interval === 0) interval = 1;
                     else interval = Math.ceil(interval * 2.5); 
                     nextReview = now + (interval * 24 * 60 * 60 * 1000);
                 } else if (dir === 'down') {
-                    interval = 0; 
+                    interval = 0;
                     nextReview = now; 
                     studyQueue.push(currentIndex); 
                 } else {
@@ -653,7 +800,7 @@
             } else {
                 // Cram 模式循環
                 if (dir !== 'right') {
-                    studyQueue.push(currentIndex); 
+                    studyQueue.push(currentIndex);
                 }
             }
 
@@ -684,7 +831,6 @@
         // 下一題 (Skip - 不評分，直接放後面)
         window.skipAction = () => {
             if(studyQueue.length === 0) return;
-            
             const cardEl = document.getElementById('active-card');
             cardEl.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
             cardEl.style.transform = 'translate(150%, 0)'; // 像簡單一樣飛出去
@@ -704,6 +850,9 @@
         const cardEl = document.getElementById('active-card');
         cardEl.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY; cardEl.style.transition = 'none'; });
         cardEl.addEventListener('touchmove', e => {
+            // 如果是在小考模式下的 textarea 裡面滑動，就不觸發卡片滑動特效
+            if(e.target.tagName.toLowerCase() === 'textarea') return;
+            
             const dx = e.touches[0].clientX - touchStartX;
             const dy = e.touches[0].clientY - touchStartY;
             const rotate = dx * 0.05;
@@ -715,6 +864,8 @@
             else if(dy > 80) cardEl.classList.add('swipe-down');
         });
         cardEl.addEventListener('touchend', e => {
+            if(e.target.tagName.toLowerCase() === 'textarea') return;
+            
             const dx = e.changedTouches[0].clientX - touchStartX;
             const dy = e.changedTouches[0].clientY - touchStartY;
             if(dx < -100) handleAction('left');
@@ -767,7 +918,6 @@
         // 從列表跳轉到該題
         window.jumpToCard = (index) => {
             // 強制將該題插入隊列首位
-            // 先檢查是否在隊列中，若在則移除
             const inQueueIdx = studyQueue.indexOf(index);
             if(inQueueIdx > -1) studyQueue.splice(inQueueIdx, 1);
             
@@ -822,7 +972,7 @@
             if(isAdmin) { isAdmin=false; document.body.classList.remove('is-admin'); document.getElementById('lock-btn').innerText="🔒"; }
             else if(prompt("密碼")===ADMIN_PIN) { isAdmin=true; document.body.classList.add('is-admin'); document.getElementById('lock-btn').innerText="🔓"; }
         };
-
+        
         window.openEdit = () => {
             if(!currentBankId || studyQueue.length===0) return;
             const idx = studyQueue[0];
@@ -838,7 +988,8 @@
             const aVal = document.getElementById('edit-a').value;
             const idx = studyQueue[0];
             if(isAdmin) {
-                allCards[idx].q = qVal; allCards[idx].a = aVal;
+                allCards[idx].q = qVal;
+                allCards[idx].a = aVal;
                 await updateDoc(doc(db, 'public_question_banks', currentBankId), { questions: allCards });
                 renderCard(); alert("已更新");
             } else {
@@ -850,7 +1001,7 @@
             }
             closeModal('modal-edit');
         };
-
+        
         // 審核與匯入
         function listenForSuggestions() {
             onSnapshot(collection(db, 'suggestions'), s => {
@@ -859,6 +1010,7 @@
                 document.getElementById('review-badge').classList.toggle('show', c>0);
             });
         }
+        
         window.openReviewModal = async () => {
             if(!isAdmin) return;
             openModal('modal-review');
@@ -875,8 +1027,9 @@
                 list.appendChild(el);
             });
         };
+        
         window.approve = async(id) => { await deleteDoc(doc(db, 'suggestions', id)); window.openReviewModal(); };
-
+        
         window.submitImport = async () => {
             const t = document.getElementById('imp-title').value;
             const txt = document.getElementById('imp-content').value;
@@ -891,7 +1044,7 @@
         };
 
         window.deleteBank = async (id) => { if(confirm("刪除?")) await deleteDoc(doc(db, 'public_question_banks', id)); };
-
+        
         // Helper
         window.openModal = id => document.getElementById(id).classList.add('active');
         window.closeModal = id => document.getElementById(id).classList.remove('active');
@@ -904,4 +1057,3 @@
     </script>
 </body>
 </html>
-
