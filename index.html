@@ -149,7 +149,8 @@
             width: 100%;
             flex: 1; /* 取代原本固定的 height: 80px，讓輸入框自動拉長 */
             min-height: 150px; /* 設定最小高度防呆 */
-            background: #181818; border: 1px solid #444; color: #fff;
+            background: #181818; border: 1px solid #444;
+            color: #fff;
             padding: 10px; border-radius: 8px; resize: none; font-size: 1.1rem;
             box-sizing: border-box;
         }
@@ -521,6 +522,7 @@
             currentBankId = id;
             allCards = b.questions || [];
             localStorage.setItem('df_progress', JSON.stringify({ bankId: id }));
+
             // 重置篩選預設值
             filterConfig = { active: false, start: 1, end: allCards.length, isRandom: false, randomCount: 20, ratioEasy: 30, ratioMid: 40, ratioHard: 30 };
 
@@ -543,6 +545,7 @@
         // 開啟設定面板
         window.openSettings = (action) => {
             if(!currentBankId) return alert("請先選擇題庫");
+
             if(action === 'reset') {
                 filterConfig = { active: false, start: 1, end: allCards.length, isRandom: false, randomCount: 20, ratioEasy: 30, ratioMid: 40, ratioHard: 30 };
                 isQuizMode = false; // 全部重練時，預設關閉小考模式
@@ -553,6 +556,7 @@
             document.getElementById('set-end').value = allCards.length; // 預設最大值
             document.getElementById('set-random').checked = false;
             document.getElementById('random-count-box').style.display = 'none';
+
             // 打開設定時，預設勾選啟用小考模式
             document.getElementById('set-quiz').checked = true; 
             openModal('modal-settings');
@@ -572,7 +576,7 @@
             const easy = parseInt(document.getElementById('set-easy').value) || 0;
             const mid = parseInt(document.getElementById('set-mid').value) || 0;
             const hard = parseInt(document.getElementById('set-hard').value) || 0;
-            
+
             // 讀取設定選單中的小考模式狀態
             isQuizMode = document.getElementById('set-quiz').checked;
 
@@ -586,6 +590,7 @@
                 ratioMid: mid,
                 ratioHard: hard
             };
+
             buildQueue();
             closeModal('modal-settings');
         };
@@ -675,6 +680,7 @@
 
             const idx = studyQueue[0]; 
             const c = allCards[idx];
+
             document.getElementById('q-index').innerText = `#${idx + 1}`;
             document.getElementById('q-text').innerText = c.q;
             
@@ -730,7 +736,7 @@
                 <div style="margin-top:10px; font-size:0.9rem; color:#aaa;">原正確答案：</div>
                 <div style="color:#fff;">${target}</div>
             `;
-
+            
             // 隱藏輸入區，讓使用者專心看答案並評分滑動
             document.getElementById('quiz-area').classList.remove('active');
         };
@@ -769,6 +775,7 @@
         // 評分與滑動
         window.handleAction = async (dir) => {
             if(studyQueue.length === 0) return;
+
             const cardEl = document.getElementById('active-card');
             let trans = '';
             if(dir === 'left') trans = 'translate(-150%, 0) rotate(-20deg)'; // 忘記
@@ -783,7 +790,7 @@
             historyStack.push(currentIndex); // 存入歷史，供上一題使用
             
             const now = Date.now();
-            
+
             // 演算法計算
             if (studyMode === 'smart') {
                 let interval = progressMap[currentIndex]?.interval || 0;
@@ -807,6 +814,7 @@
                 progressMap[currentIndex] = { nextReview, interval };
                 const progRef = doc(db, 'users', currentUser.uid, 'progress', currentBankId);
                 setDoc(progRef, { reviews: progressMap }, { merge: true });
+
             } else {
                 // Cram 模式循環
                 if (dir !== 'right') {
@@ -823,6 +831,7 @@
         // 上一題 (Undo)
         window.undoAction = () => {
             if(historyStack.length === 0) return alert("已經是第一題了");
+
             const prevIndex = historyStack.pop();
             studyQueue.unshift(prevIndex); // 放回開頭
             
@@ -841,6 +850,7 @@
         // 下一題 (Skip - 不評分，直接放後面)
         window.skipAction = () => {
             if(studyQueue.length === 0) return;
+
             const cardEl = document.getElementById('active-card');
             cardEl.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
             cardEl.style.transform = 'translate(150%, 0)'; // 像簡單一樣飛出去
@@ -858,6 +868,7 @@
 
         // === 5. 滑動手勢監聽 ===
         const cardEl = document.getElementById('active-card');
+
         cardEl.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY; cardEl.style.transition = 'none'; });
         cardEl.addEventListener('touchmove', e => {
             // 如果是在小考模式下的 textarea 裡面滑動，就不觸發卡片滑動特效
@@ -866,6 +877,7 @@
             const dx = e.touches[0].clientX - touchStartX;
             const dy = e.touches[0].clientY - touchStartY;
             const rotate = dx * 0.05;
+    
             cardEl.style.transform = `translate(${dx}px, ${dy}px) rotate(${rotate}deg)`;
             
             cardEl.classList.remove('swipe-left', 'swipe-right', 'swipe-down');
@@ -873,7 +885,6 @@
             else if(dx > 80) cardEl.classList.add('swipe-right');
             else if(dy > 80) cardEl.classList.add('swipe-down');
         });
-
         cardEl.addEventListener('touchend', e => {
             if(e.target.tagName.toLowerCase() === 'textarea') return;
             
@@ -892,6 +903,7 @@
         // === 6. 熟悉度列表 ===
         window.openStatusList = () => {
             if(!currentBankId) return alert("請先選擇題庫");
+
             openModal('modal-status');
             const tbody = document.getElementById('status-list-body');
             tbody.innerHTML = '';
@@ -917,6 +929,7 @@
                 const tr = document.createElement('tr');
                 tr.className = 'status-row';
                 tr.onclick = () => jumpToCard(idx);
+               
                 tr.innerHTML = `
                     <td>${idx+1}</td>
                     <td style="max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${c.q}</td>
@@ -928,7 +941,7 @@
 
         // 從列表跳轉到該題
         window.jumpToCard = (index) => {
-            // 強制將該題插入隊列首位
+             // 強制將該題插入隊列首位
             const inQueueIdx = studyQueue.indexOf(index);
             if(inQueueIdx > -1) studyQueue.splice(inQueueIdx, 1);
             
@@ -1059,7 +1072,6 @@
         // Helper
         window.openModal = id => document.getElementById(id).classList.add('active');
         window.closeModal = id => document.getElementById(id).classList.remove('active');
-
         window.toggleSidebar = show => {
             const s = document.getElementById('sidebar');
             const o = document.querySelector('.sidebar-overlay');
