@@ -60,6 +60,13 @@
             align-items: center; gap: 5px;
         }
         .tool-btn:active { background: #444; }
+        
+        /* 避開此題啟用時的樣式 */
+        .tool-btn.active-avoid {
+            background: rgba(229, 115, 115, 0.2);
+            color: var(--danger-color);
+            border: 1px solid var(--danger-color);
+        }
 
         /* --- 卡片主體 (滑動區) --- */
         .main-container {
@@ -101,7 +108,8 @@
         }
         .swipe-left .indicator-forget { opacity: 1; color: var(--danger-color); border-color: var(--danger-color); }
         .swipe-right .indicator-easy { opacity: 1; color: var(--primary-color); border-color: var(--primary-color); }
-        .swipe-down .indicator-blur { opacity: 1; color: var(--warning-color); border-color: var(--warning-color); top: auto; bottom: 20px; }
+        .swipe-down .indicator-blur { opacity: 1; color: var(--warning-color); border-color: var(--warning-color); top: auto;
+            bottom: 20px; }
 
         .question-meta {
             font-size: 0.8rem;
@@ -141,14 +149,16 @@
             gap: 10px;
             margin-top: 15px;
             width: 100%;
-            flex: 1; /* 新增：讓作答區塊填滿卡片剩餘高度 */
+            flex: 1;
+            /* 新增：讓作答區塊填滿卡片剩餘高度 */
         }
         .quiz-area.active { display: flex; }
         
         .quiz-input {
             width: 100%;
             flex: 1; /* 取代原本固定的 height: 80px，讓輸入框自動拉長 */
-            min-height: 150px; /* 設定最小高度防呆 */
+            min-height: 150px;
+            /* 設定最小高度防呆 */
             background: #181818; border: 1px solid #444;
             color: #fff;
             padding: 10px; border-radius: 8px; resize: none; font-size: 1.1rem;
@@ -216,8 +226,10 @@
             width: 100%;
             border-collapse: collapse; font-size: 0.9rem;
         }
-        .status-table th { text-align: left; color: #888; padding: 5px; border-bottom: 1px solid #444; }
-        .status-table td { padding: 8px 5px; border-bottom: 1px solid #333; color: #ddd; }
+        .status-table th { text-align: left; color: #888;
+            padding: 5px; border-bottom: 1px solid #444; }
+        .status-table td { padding: 8px 5px;
+            border-bottom: 1px solid #333; color: #ddd; }
         .status-row:active { background: #333; }
         
         input, textarea, select {
@@ -249,7 +261,9 @@
         }
         .mode-btn.active { background: var(--primary-color); color: #fff; }
         
-        .tag-review { color: var(--danger-color); font-size: 0.8rem; border: 1px solid var(--danger-color); padding: 1px 4px; border-radius: 4px; }
+        .tag-review { color: var(--danger-color);
+            font-size: 0.8rem; border: 1px solid var(--danger-color); padding: 1px 4px; border-radius: 4px;
+        }
         .tag-future { color: var(--primary-color); font-size: 0.8rem; }
         .tag-new { color: var(--text-sub); font-size: 0.8rem; }
 
@@ -293,8 +307,9 @@
     </div>
 
     <div class="toolbar">
-        <button class="tool-btn" onclick="openSettings()">⚙️ 範圍/隨機</button>
+        <button class="tool-btn" onclick="openSettings()">⚙️ 隨堂測驗</button>
         <button class="tool-btn" onclick="openStatusList()">📋 熟悉度/列表</button>
+        <button class="tool-btn" id="btn-avoid" onclick="toggleAvoidCurrent()" style="display: none;">🚫 避開此題</button>
     </div>
 
     <div class="main-container" id="card-area">
@@ -303,6 +318,7 @@
             <div style="font-size: 4rem;">🎉</div>
             <h2>任務完成</h2>
             <p>目前條件下沒有題目了。</p>
+   
             <div style="display:flex; gap:10px; justify-content:center; margin-top:20px;">
                 <button onclick="openSettings()" style="padding:8px 20px; background:#333; color:#fff; border:1px solid #555; border-radius:20px;">調整範圍</button>
                 <button onclick="setMode('cram'); openSettings('reset');" style="padding:8px 20px; background:var(--primary-color); color:#fff; border:none; border-radius:20px;">全部重練</button>
@@ -320,7 +336,7 @@
             </div>
             
             <div class="question-box" id="q-text">請選擇題庫</div>
-            
+ 
             <div class="answer-box" id="a-text"></div>
 
             <div class="quiz-area" id="quiz-area">
@@ -342,6 +358,7 @@
 
                 <button class="nav-btn" onclick="skipAction()">➡</button>
             </div>
+       
         </div>
     </div>
 
@@ -456,15 +473,16 @@
           appId: "1:433425348870:web:3fd60e44e18d27e1ab8687",
           measurementId: "G-WE3QHJD139"
         };
-
         // === 全域變數 ===
         let db, auth, currentUser;
         let banks = [];
         let allCards = []; 
         let studyQueue = []; 
-        let historyStack = []; // 上一題堆疊
+        let historyStack = [];
+        // 上一題堆疊
         let currentBankId = null;
-        let maskLevel = 1; // 預設 Lv1
+        let maskLevel = 1;
+        // 預設 Lv1
         let isAdmin = false;
         let touchStartX = 0, touchStartY = 0;
         let studyMode = 'smart'; 
@@ -475,13 +493,54 @@
         };
         let isQuizMode = false; // 小考模式狀態
 
+        // === 新增：避開此題邏輯 ===
+        window.toggleAvoidCurrent = async () => {
+            if(!currentBankId || studyQueue.length === 0) return;
+            const idx = studyQueue[0];
+            
+            // 初始化該題的進度物件（如果還沒有的話）
+            if(!progressMap[idx]) progressMap[idx] = {};
+            
+            // 切換避開狀態 (true / false)
+            progressMap[idx].avoid = !progressMap[idx].avoid;
+            
+            // 更新按鈕畫面
+            window.updateAvoidBtnUI();
+            
+            // 存檔到 Firebase
+            if(currentUser) {
+                const progRef = doc(db, 'users', currentUser.uid, 'progress', currentBankId);
+                await setDoc(progRef, { reviews: progressMap }, { merge: true });
+            }
+        };
+
+        window.updateAvoidBtnUI = () => {
+            const btn = document.getElementById('btn-avoid');
+            if(!btn) return;
+            if(studyQueue.length === 0) {
+                btn.style.display = 'none';
+                return;
+            }
+            btn.style.display = 'flex';
+            
+            const idx = studyQueue[0];
+            const isAvoid = progressMap[idx]?.avoid;
+            
+            if(isAvoid) {
+                btn.classList.add('active-avoid');
+                btn.innerHTML = '✅ 已避開';
+            } else {
+                btn.classList.remove('active-avoid');
+                btn.innerHTML = '🚫 避開此題';
+            }
+        };
+
         // === 初始化 ===
         const app = initializeApp(firebaseConfig);
         auth = getAuth(app);
         db = getFirestore(app);
 
         signInAnonymously(auth).catch(e => alert("連線失敗: " + e.message));
-
         onAuthStateChanged(auth, user => {
             if(user) {
                 currentUser = user;
@@ -491,7 +550,7 @@
                 listenForSuggestions();
             }
         });
-
+        
         // === 1. 讀取題庫列表 ===
         function loadBanks() {
             const q = query(collection(db, 'public_question_banks'));
@@ -522,10 +581,8 @@
             currentBankId = id;
             allCards = b.questions || [];
             localStorage.setItem('df_progress', JSON.stringify({ bankId: id }));
-
             // 重置篩選預設值
             filterConfig = { active: false, start: 1, end: allCards.length, isRandom: false, randomCount: 20, ratioEasy: 30, ratioMid: 40, ratioHard: 30 };
-
             // 讀取進度
             const progRef = doc(db, 'users', currentUser.uid, 'progress', id);
             const progSnap = await getDoc(progRef);
@@ -534,7 +591,7 @@
             buildQueue(); 
             renderSidebar();
         };
-
+        
         window.setMode = (mode) => {
             studyMode = mode;
             document.getElementById('mode-smart').className = mode === 'smart' ? 'mode-btn active' : 'mode-btn';
@@ -545,7 +602,6 @@
         // 開啟設定面板
         window.openSettings = (action) => {
             if(!currentBankId) return alert("請先選擇題庫");
-
             if(action === 'reset') {
                 filterConfig = { active: false, start: 1, end: allCards.length, isRandom: false, randomCount: 20, ratioEasy: 30, ratioMid: 40, ratioHard: 30 };
                 isQuizMode = false; // 全部重練時，預設關閉小考模式
@@ -553,20 +609,20 @@
                 return;
             }
             document.getElementById('total-q-count').innerText = allCards.length;
-            document.getElementById('set-end').value = allCards.length; // 預設最大值
+            document.getElementById('set-end').value = allCards.length;
+            // 預設最大值
             document.getElementById('set-random').checked = false;
             document.getElementById('random-count-box').style.display = 'none';
-
             // 打開設定時，預設勾選啟用小考模式
             document.getElementById('set-quiz').checked = true; 
             openModal('modal-settings');
         };
-
+        
         // 監聽隨機checkbox
         document.getElementById('set-random').addEventListener('change', (e) => {
             document.getElementById('random-count-box').style.display = e.target.checked ? 'block' : 'none';
         });
-
+        
         // 應用設定並重建隊列
         window.applySettings = () => {
             const s = parseInt(document.getElementById('set-start').value) || 1;
@@ -576,10 +632,8 @@
             const easy = parseInt(document.getElementById('set-easy').value) || 0;
             const mid = parseInt(document.getElementById('set-mid').value) || 0;
             const hard = parseInt(document.getElementById('set-hard').value) || 0;
-
             // 讀取設定選單中的小考模式狀態
             isQuizMode = document.getElementById('set-quiz').checked;
-
             filterConfig = {
                 active: true,
                 start: Math.max(1, s),
@@ -590,7 +644,6 @@
                 ratioMid: mid,
                 ratioHard: hard
             };
-
             buildQueue();
             closeModal('modal-settings');
         };
@@ -604,6 +657,8 @@
             // 1. 先建立候選池 (根據範圍)
             for(let i=0; i<allCards.length; i++) {
                 if(i + 1 >= filterConfig.start && i + 1 <= filterConfig.end) {
+                    // ====== 修改：如果該題被標記為避開，就跳過不加入抽題池 ======
+                    if(progressMap[i]?.avoid) continue; 
                     candidates.push(i);
                 }
             }
@@ -618,7 +673,7 @@
                     else if(inv <= 5) midPool.push(i);
                     else easyPool.push(i);
                 });
-
+                
                 // 打亂陣列的 Helper
                 const shuffle = (arr) => arr.sort(() => 0.5 - Math.random());
                 shuffle(easyPool); shuffle(midPool); shuffle(hardPool);
@@ -635,7 +690,7 @@
                     ...midPool.splice(0, cMid),
                     ...hardPool.splice(0, cHard)
                 ];
-
+                
                 // 若數量還是不夠設定值，把剩下的亂序補上
                 const leftovers = shuffle([...easyPool, ...midPool, ...hardPool]);
                 while(finalPool.length < total && leftovers.length > 0) {
@@ -643,7 +698,6 @@
                 }
 
                 studyQueue = shuffle(finalPool);
-
             } else {
                 // 智慧模式且無自訂範圍：只加入到期卡；否則全加
                 if (studyMode === 'smart' && !filterConfig.active) {
@@ -663,11 +717,12 @@
             const maskBtn = document.getElementById('mask-btn');
             const quizArea = document.getElementById('quiz-area');
             const quizInput = document.getElementById('quiz-input');
-
+            
             if(studyQueue.length === 0) {
                 cardEl.style.display = 'none';
                 emptyEl.classList.add('show');
                 qCount.innerText = "0";
+                if(window.updateAvoidBtnUI) window.updateAvoidBtnUI(); // 隱藏按鈕
                 return;
             }
 
@@ -680,13 +735,15 @@
 
             const idx = studyQueue[0]; 
             const c = allCards[idx];
-
             document.getElementById('q-index').innerText = `#${idx + 1}`;
             document.getElementById('q-text').innerText = c.q;
             
+            // ====== 新增這一行：每次換題時更新「避開此題」按鈕狀態 ======
+            if(window.updateAvoidBtnUI) window.updateAvoidBtnUI();
+            
             const aDiv = document.getElementById('a-text');
             aDiv.innerHTML = '';
-
+            
             // UI 控制：小考模式切換
             maskBtn.innerText = `遮罩: Lv${maskLevel}`;
             maskBtn.style.display = isQuizMode ? 'none' : 'block';
@@ -725,10 +782,9 @@
             const c = allCards[studyQueue[0]];
             const target = (c.a || "").trim();
             const input = document.getElementById('quiz-input').value.trim();
-
+            
             // 使用 LCS (最長共同子序列) 演算法標示差異
             const diffHtml = generateDiffHtml(target, input);
-
             const aDiv = document.getElementById('a-text');
             aDiv.innerHTML = `
                 <div style="font-size:0.9rem; color:#aaa; margin-bottom:5px;">比對結果：</div>
@@ -736,11 +792,10 @@
                 <div style="margin-top:10px; font-size:0.9rem; color:#aaa;">原正確答案：</div>
                 <div style="color:#fff;">${target}</div>
             `;
-            
             // 隱藏輸入區，讓使用者專心看答案並評分滑動
             document.getElementById('quiz-area').classList.remove('active');
         };
-
+        
         // 核心文字比對演算法 (動態規劃)
         function generateDiffHtml(correct, user) {
             let m = correct.length, n = user.length;
@@ -775,7 +830,6 @@
         // 評分與滑動
         window.handleAction = async (dir) => {
             if(studyQueue.length === 0) return;
-
             const cardEl = document.getElementById('active-card');
             let trans = '';
             if(dir === 'left') trans = 'translate(-150%, 0) rotate(-20deg)'; // 忘記
@@ -790,7 +844,7 @@
             historyStack.push(currentIndex); // 存入歷史，供上一題使用
             
             const now = Date.now();
-
+            
             // 演算法計算
             if (studyMode === 'smart') {
                 let interval = progressMap[currentIndex]?.interval || 0;
@@ -811,10 +865,11 @@
                     studyQueue.splice(insertPos, 0, currentIndex);
                 }
 
-                progressMap[currentIndex] = { nextReview, interval };
-                const progRef = doc(db, 'users', currentUser.uid, 'progress', currentBankId);
-                setDoc(progRef, { reviews: progressMap }, { merge: true });
-
+                progressMap[currentIndex] = { ...progressMap[currentIndex], nextReview, interval };
+                if (currentUser) {
+                    const progRef = doc(db, 'users', currentUser.uid, 'progress', currentBankId);
+                    setDoc(progRef, { reviews: progressMap }, { merge: true });
+                }
             } else {
                 // Cram 模式循環
                 if (dir !== 'right') {
@@ -831,7 +886,6 @@
         // 上一題 (Undo)
         window.undoAction = () => {
             if(historyStack.length === 0) return alert("已經是第一題了");
-
             const prevIndex = historyStack.pop();
             studyQueue.unshift(prevIndex); // 放回開頭
             
@@ -850,7 +904,6 @@
         // 下一題 (Skip - 不評分，直接放後面)
         window.skipAction = () => {
             if(studyQueue.length === 0) return;
-
             const cardEl = document.getElementById('active-card');
             cardEl.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
             cardEl.style.transform = 'translate(150%, 0)'; // 像簡單一樣飛出去
@@ -868,7 +921,6 @@
 
         // === 5. 滑動手勢監聽 ===
         const cardEl = document.getElementById('active-card');
-
         cardEl.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY; cardEl.style.transition = 'none'; });
         cardEl.addEventListener('touchmove', e => {
             // 如果是在小考模式下的 textarea 裡面滑動，就不觸發卡片滑動特效
@@ -877,7 +929,6 @@
             const dx = e.touches[0].clientX - touchStartX;
             const dy = e.touches[0].clientY - touchStartY;
             const rotate = dx * 0.05;
-    
             cardEl.style.transform = `translate(${dx}px, ${dy}px) rotate(${rotate}deg)`;
             
             cardEl.classList.remove('swipe-left', 'swipe-right', 'swipe-down');
@@ -885,6 +936,7 @@
             else if(dx > 80) cardEl.classList.add('swipe-right');
             else if(dy > 80) cardEl.classList.add('swipe-down');
         });
+        
         cardEl.addEventListener('touchend', e => {
             if(e.target.tagName.toLowerCase() === 'textarea') return;
             
@@ -903,7 +955,6 @@
         // === 6. 熟悉度列表 ===
         window.openStatusList = () => {
             if(!currentBankId) return alert("請先選擇題庫");
-
             openModal('modal-status');
             const tbody = document.getElementById('status-list-body');
             tbody.innerHTML = '';
@@ -914,7 +965,11 @@
                 let statusHtml = '<span class="tag-new">新題目</span>';
                 let sortTime = 0;
 
-                if(p && p.nextReview) {
+                // ====== 修改：優先判斷是否被避開 ======
+                if (p && p.avoid) {
+                    statusHtml = '<span class="tag-review" style="border-color:#777; color:#777;">已避開</span>';
+                    sortTime = 99999999; // 排到較後面的位置
+                } else if(p && p.nextReview) {
                     const diff = p.nextReview - now;
                     if(diff <= 0) {
                         statusHtml = '<span class="tag-review">需複習</span>';
@@ -929,7 +984,6 @@
                 const tr = document.createElement('tr');
                 tr.className = 'status-row';
                 tr.onclick = () => jumpToCard(idx);
-               
                 tr.innerHTML = `
                     <td>${idx+1}</td>
                     <td style="max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${c.q}</td>
@@ -941,7 +995,7 @@
 
         // 從列表跳轉到該題
         window.jumpToCard = (index) => {
-             // 強制將該題插入隊列首位
+            // 強制將該題插入隊列首位
             const inQueueIdx = studyQueue.indexOf(index);
             if(inQueueIdx > -1) studyQueue.splice(inQueueIdx, 1);
             
@@ -996,7 +1050,7 @@
             if(isAdmin) { isAdmin=false; document.body.classList.remove('is-admin'); document.getElementById('lock-btn').innerText="🔒"; }
             else if(prompt("密碼")===ADMIN_PIN) { isAdmin=true; document.body.classList.add('is-admin'); document.getElementById('lock-btn').innerText="🔓"; }
         };
-
+        
         window.openEdit = () => {
             if(!currentBankId || studyQueue.length===0) return;
             const idx = studyQueue[0];
@@ -1025,7 +1079,7 @@
             }
             closeModal('modal-edit');
         };
-
+        
         // 審核與匯入
         function listenForSuggestions() {
             onSnapshot(collection(db, 'suggestions'), s => {
@@ -1053,7 +1107,7 @@
         };
         
         window.approve = async(id) => { await deleteDoc(doc(db, 'suggestions', id)); window.openReviewModal(); };
-
+        
         window.submitImport = async () => {
             const t = document.getElementById('imp-title').value;
             const txt = document.getElementById('imp-content').value;
@@ -1068,7 +1122,7 @@
         };
 
         window.deleteBank = async (id) => { if(confirm("刪除?")) await deleteDoc(doc(db, 'public_question_banks', id)); };
-
+        
         // Helper
         window.openModal = id => document.getElementById(id).classList.add('active');
         window.closeModal = id => document.getElementById(id).classList.remove('active');
