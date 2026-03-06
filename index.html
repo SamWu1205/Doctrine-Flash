@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>準則快憶通 SRS v2.1</title>
+    <title>準則快憶通 SRS v2.1 (診斷強化版)</title>
     <style>
         :root {
             --bg-color: #121212; --surface-color: #1e1e1e;
@@ -16,7 +16,7 @@
             font-family: -apple-system, sans-serif; margin: 0; padding: 0;
             display: flex; flex-direction: column; height: 100vh; overflow: hidden; user-select: none;
         }
-        /* 導航與工具列 */
+        /* 介面佈局 */
         .header { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; background: var(--surface-color); border-bottom: 1px solid #333; height: 50px; z-index: 20; }
         .header-left { display: flex; align-items: center; gap: 10px; }
         .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #555; }
@@ -25,7 +25,6 @@
         .tool-btn { background: #333; color: #ccc; border: 1px solid #444; padding: 5px 12px; border-radius: 15px; font-size: 0.85rem; white-space: nowrap; cursor: pointer; }
         .tool-btn.active-avoid { background: rgba(229, 115, 115, 0.2); color: var(--danger-color); border-color: var(--danger-color); }
         
-        /* 卡片區域 */
         .main-container { flex: 1; position: relative; display: flex; justify-content: center; align-items: center; overflow: hidden; perspective: 1000px; }
         .card { 
             width: 90%; max-width: 600px; height: 85%; background: var(--surface-color); border-radius: 16px; padding: 20px;
@@ -33,14 +32,8 @@
             transition: transform 0.3s ease, opacity 0.3s ease; box-sizing: border-box; border: 1px solid #333;
             touch-action: none; 
         }
-        .swipe-indicator { position: absolute; top: 20px; right: 20px; font-size: 2rem; font-weight: bold; opacity: 0; border: 4px solid; padding: 5px 10px; border-radius: 8px; transform: rotate(15deg); pointer-events: none; }
-        .swipe-left .indicator-forget { opacity: 1; color: var(--danger-color); border-color: var(--danger-color); }
-        .swipe-right .indicator-easy { opacity: 1; color: var(--primary-color); border-color: var(--primary-color); }
-        .swipe-down .indicator-blur { opacity: 1; color: var(--warning-color); border-color: var(--warning-color); top: auto; bottom: 20px; }
         
-        /* 文字與遮罩 */
-        .question-box { font-size: 1.3rem; font-weight: bold; color: #81c784; margin-bottom: 20px; }
-        .answer-box { font-size: 1.15rem; line-height: 1.8; flex: 1; overflow-y: auto; white-space: pre-wrap; }
+        /* 答案遮罩：背景相容色 */
         .mask-lv1 { display: inline-block; width: 80px; height: 1.2rem; background: #2a2a2a; border-radius: 4px; border: 1px solid #444; vertical-align: bottom; }
         
         /* 側邊欄與彈窗 */
@@ -56,19 +49,18 @@
         body.is-admin .admin-only { display: flex !important; }
         .mode-btn.active { background: var(--primary-color); color: #fff; }
         
-        /* 測驗區 */
-        .quiz-area { display: none; flex-direction: column; gap: 10px; margin-top: 15px; flex: 1; }
-        .quiz-area.active { display: flex; }
-        .quiz-input { width: 100%; flex: 1; background: #181818; border: 1px solid #444; color: #fff; padding: 10px; border-radius: 8px; resize: none; font-size: 1.1rem; }
+        /* 載入畫面 */
+        #loader { position:fixed; top:0; left:0; width:100%; height:100%; background:#121212; z-index:999; display:flex; flex-direction:column; justify-content:center; align-items:center; }
     </style>
 </head>
 <body>
 
-    <div id="loader" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#121212; z-index:999; display:flex; flex-direction:column; justify-content:center; align-items:center;">
-        <div style="font-size: 3rem;">⚡</div><p>系統啟動中...</p>
+    <div id="loader">
+        <div style="font-size: 3rem;">⚡</div>
+        <p id="loader-msg">系統啟動中...</p>
     </div>
 
-    <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar(false)"></div>
+    <div class="sidebar-overlay" onclick="toggleSidebar(false)"></div>
     <div class="sidebar" id="sidebar">
         <div style="padding:15px; border-bottom:1px solid #333; display:flex; justify-content:space-between; align-items:center;">
             <h3>題庫選單</h3>
@@ -110,18 +102,12 @@
         </div>
 
         <div class="card" id="active-card">
-            <div class="swipe-indicator indicator-forget">忘記</div>
-            <div class="swipe-indicator indicator-easy">簡單</div>
-            <div class="swipe-indicator indicator-blur">模糊</div>
             <div style="display:flex; justify-content:space-between; font-size:0.8rem; color:#666; margin-bottom:5px;">
                 <span id="q-index">#0</span><span>剩餘: <span id="queue-count">0</span></span>
             </div>
-            <div class="question-box" id="q-text">請先選擇題庫</div>
+            <div style="font-size: 1.3rem; font-weight: bold; color: #81c784; margin-bottom: 20px;" id="q-text">請先選擇題庫</div>
             <div class="answer-box" id="a-text"></div>
-            <div class="quiz-area" id="quiz-area">
-                <textarea id="quiz-input" class="quiz-input" placeholder="輸入答案..."></textarea>
-                <button id="btn-quiz-next" style="padding:12px; background:var(--secondary-color); border:none; color:#fff; border-radius:8px;" onclick="nextQuizQuestion()">儲存並下一題</button>
-            </div>
+            
             <div id="control-bar-main" style="display:flex; justify-content:space-between; margin-top:auto; padding-top:10px; border-top:1px solid #333;">
                 <button class="tool-btn" onclick="undoAction()">↩ 復原</button>
                 <button class="tool-btn" onclick="cycleMask()" id="mask-btn">遮罩: Lv1</button>
@@ -132,30 +118,28 @@
 
     <div id="modal-settings" class="modal"><div class="modal-content">
         <h3>📖 抽題範圍設定</h3>
-        <input type="number" id="set-start" placeholder="起始題號" value="1" style="width:100%; padding:8px; margin-bottom:10px; background:#2a2a2a; border:1px solid #444; color:#fff;">
-        <input type="number" id="set-end" placeholder="結束題號" style="width:100%; padding:8px; margin-bottom:10px; background:#2a2a2a; border:1px solid #444; color:#fff;">
-        <label style="display:flex; align-items:center; margin-top:10px; color:#fff;"><input type="checkbox" id="set-quiz"> ✍️ 啟用小考模式</label>
-        <button onclick="applySettings()" style="width:100%; padding:12px; background:var(--primary-color); color:#fff; border:none; margin-top:15px; border-radius:6px;">確認開始</button>
-        <button onclick="closeModal('modal-settings')" style="width:100%; background:none; color:#aaa; border:none; margin-top:10px;">取消</button>
+        <input type="number" id="set-start" placeholder="起始題號" value="1" style="width:100%; padding:8px; background:#2a2a2a; border:1px solid #444; color:#fff;">
+        <input type="number" id="set-end" placeholder="結束題號" style="width:100%; padding:8px; background:#2a2a2a; border:1px solid #444; color:#fff;">
+        <button onclick="applySettings()" style="width:100%; padding:12px; background:var(--primary-color); color:#fff; border:none; margin-top:15px; border-radius:6px;">確認</button>
     </div></div>
 
-    <div id="modal-status" class="modal"><div class="modal-content" style="max-width:600px;">
-        <h3>📊 熟悉度一覽 (點擊可跳題)</h3>
+    <div id="modal-status" class="modal"><div class="modal-content">
+        <h3>📊 熟悉度 (點擊可跳題)</h3>
         <div id="status-list-body" style="display:flex; flex-direction:column; gap:8px;"></div>
-        <button onclick="closeModal('modal-status')" style="width:100%; padding:10px; margin-top:15px; background:#333; border:none; color:#fff; border-radius:4px;">關閉</button>
+        <button onclick="closeModal('modal-status')" style="width:100%; padding:10px; margin-top:15px;">關閉</button>
     </div></div>
 
     <div id="modal-import" class="modal"><div class="modal-content">
-        <h3>批次新增題庫</h3>
-        <input id="imp-title" placeholder="題庫名稱" style="width:100%; padding:8px; background:#2a2a2a; border:1px solid #444; color:#fff;">
-        <textarea id="imp-content" style="height:150px; margin-top:10px; width:100%; background:#2a2a2a; border:1px solid #444; color:#fff;" placeholder="Q:題目&#10;A:答案"></textarea>
-        <button onclick="submitImport()" style="width:100%; padding:12px; background:var(--primary-color); color:#fff; border:none; margin-top:15px;">儲存至雲端</button>
+        <h3>匯入新題庫</h3>
+        <input id="imp-title" placeholder="名稱" style="width:100%; padding:8px; background:#2a2a2a; color:#fff;">
+        <textarea id="imp-content" style="height:150px; margin-top:10px; width:100%; background:#2a2a2a; color:#fff;" placeholder="Q:題目&#10;A:答案"></textarea>
+        <button onclick="submitImport()" style="width:100%; padding:12px; background:var(--primary-color); border:none; color:#fff; margin-top:10px;">儲存</button>
     </div></div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
-        import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, serverTimestamp, query, onSnapshot, getDoc, setDoc, writeBatch } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, doc, query, onSnapshot, getDoc, setDoc, writeBatch } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyC7MgXLY7SwH-gJW71d1jgpPmJwr--I6Mg",
@@ -171,30 +155,47 @@
         const db = getFirestore(app);
 
         let currentUser, banks = [], allCards = [], studyQueue = [], historyStack = [], progressMap = {};
-        let currentBankId = null, studyMode = 'smart', isQuizMode = false, maskLevel = 1, isAdmin = false;
+        let currentBankId = null, studyMode = 'smart', maskLevel = 1, isAdmin = false;
         let touchStartX = 0, touchStartY = 0;
 
-        [span_2](start_span)// 初始化與認證[span_2](end_span)
-        signInAnonymously(auth);
-        onAuthStateChanged(auth, user => {
-            if(user) {
-                currentUser = user;
-                document.getElementById('status-dot').classList.add('online');
+        // --- 診斷與啟動邏輯 ---
+        const safetyTimer = setTimeout(() => {
+            if (document.getElementById('loader').style.display !== 'none') {
                 document.getElementById('loader').style.display = 'none';
-                loadBanks();
+                alert("診斷提示：連線逾時。請檢查 Firebase Rules 或匿名登入是否啟用。");
+            }
+        }, 8000);
+
+        onAuthStateChanged(auth, async (user) => {
+            try {
+                if(user) {
+                    clearTimeout(safetyTimer);
+                    currentUser = user;
+                    document.getElementById('status-dot').classList.add('online');
+                    await loadBanks();
+                    document.getElementById('loader').style.display = 'none';
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (e) {
+                alert("驗證失敗: " + e.message);
             }
         });
 
-        [span_3](start_span)// 讀取題庫[span_3](end_span)
-        function loadBanks() {
-            onSnapshot(collection(db, 'public_question_banks'), (snap) => {
+        async function loadBanks() {
+            try {
+                const q = query(collection(db, 'public_question_banks'));
+                const snap = await getDocs(q);
                 banks = snap.docs.map(d => ({id: d.id, ...d.data()}));
                 renderSidebar();
                 const saved = JSON.parse(localStorage.getItem('df_progress') || '{}');
-                if(!currentBankId && saved.bankId) selectBank(saved.bankId);
-            });
+                if(saved.bankId) selectBank(saved.bankId);
+            } catch (e) {
+                alert("資料庫讀取失敗: " + e.message);
+            }
         }
 
+        // --- 核心業務邏輯 ---
         async function selectBank(id) {
             const b = banks.find(x => x.id === id);
             if(!b) return;
@@ -207,69 +208,44 @@
             renderSidebar();
         }
 
-        [span_4](start_span)[span_5](start_span)// 建立佇列與過濾[span_4](end_span)[span_5](end_span)
         function buildQueue(filter = null) {
-            let candidates = allCards.map((_, i) => i);
-            candidates = candidates.filter(i => !progressMap[i]?.avoid);
-
-            if(filter) {
-                candidates = candidates.filter(i => (i+1) >= filter.start && (i+1) <= filter.end);
-            }
-            
-            if(studyMode === 'smart' && !filter) {
-                const now = Date.now();
-                studyQueue = candidates.filter(i => (progressMap[i]?.nextReview || 0) <= now);
-            } else {
-                studyQueue = candidates;
-            }
+            let candidates = allCards.map((_, i) => i).filter(i => !progressMap[i]?.avoid);
+            if(filter) candidates = candidates.filter(i => (i+1) >= filter.start && (i+1) <= filter.end);
+            studyQueue = (studyMode === 'smart' && !filter) 
+                ? candidates.filter(i => (progressMap[i]?.nextReview || 0) <= Date.now()) 
+                : candidates;
             renderCard();
         }
 
-        [span_6](start_span)[span_7](start_span)// 介面渲染[span_6](end_span)[span_7](end_span)
         function renderCard() {
             const card = document.getElementById('active-card');
             const empty = document.getElementById('empty-state');
-            
-            if(studyQueue.length === 0) {
-                card.style.display = 'none'; empty.style.display = 'block';
-                return;
-            }
-
+            if(studyQueue.length === 0) { card.style.display = 'none'; empty.style.display = 'block'; return; }
             card.style.display = 'flex'; empty.style.display = 'none';
             card.style.transform = 'translate(0,0)'; card.style.opacity = '1';
             
             const idx = studyQueue[0];
-            const data = allCards[idx];
             document.getElementById('q-index').innerText = `#${idx + 1}`;
-            document.getElementById('q-text').innerText = data.q;
+            document.getElementById('q-text').innerText = allCards[idx].q;
             document.getElementById('queue-count').innerText = studyQueue.length;
+            document.getElementById('btn-avoid').classList.toggle('active-avoid', !!progressMap[idx]?.avoid);
             
-            const btnAvoid = document.getElementById('btn-avoid');
-            btnAvoid.classList.toggle('active-avoid', !!progressMap[idx]?.avoid);
-
             const aDiv = document.getElementById('a-text');
-            const quizArea = document.getElementById('quiz-area');
-            const ctrlBar = document.getElementById('control-bar-main');
-
-            if(isQuizMode) {
-                aDiv.innerText = "(測驗作答中)"; quizArea.classList.add('active'); ctrlBar.style.display = 'none';
-                document.getElementById('quiz-input').value = '';
-            } else {
-                quizArea.classList.remove('active'); ctrlBar.style.display = 'flex';
-                aDiv.innerHTML = maskLevel === 1 ? '<div class="mask-lv1"></div>' : (maskLevel === 2 ? data.a.substring(0, 5) + '...' : data.a);
-            }
+            if(maskLevel === 1) aDiv.innerHTML = '<div class="mask-lv1"></div>';
+            else if(maskLevel === 2) aDiv.innerText = allCards[idx].a.substring(0, 5) + "...";
+            else aDiv.innerText = allCards[idx].a;
         }
 
-        // --- 全域掛載函數 ---
-        window.setMode = (m) => { studyMode = m; buildQueue(); 
-            document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('active', b.id === `mode-${m}`));
-        };
-        window.toggleSidebar = (s) => { 
-            document.getElementById('sidebar').classList.toggle('active', s);
-            document.getElementById('sidebar-overlay').classList.toggle('active', s);
-        };
+        // --- 全域掛載 ---
+        window.setMode = (m) => { studyMode = m; buildQueue(); document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('active', b.id === `mode-${m}`)); };
+        window.toggleSidebar = (s) => { document.querySelector('.sidebar').classList.toggle('active', s); document.querySelector('.sidebar-overlay').classList.toggle('active', s); };
         window.openModal = (id) => document.getElementById(id).classList.add('active');
         window.closeModal = (id) => document.getElementById(id).classList.remove('active');
+        window.cycleMask = () => { maskLevel = (maskLevel % 3) + 1; document.getElementById('mask-btn').innerText = `遮罩: Lv${maskLevel}`; renderCard(); };
+        window.skipAction = () => { studyQueue.push(studyQueue.shift()); renderCard(); };
+        window.undoAction = () => { if(historyStack.length) studyQueue.unshift(historyStack.pop()); renderCard(); };
+        window.toggleAdmin = () => { isAdmin = !isAdmin; document.body.classList.toggle('is-admin', isAdmin); document.getElementById('lock-btn').innerText = isAdmin ? "🔓" : "🔒"; };
+        window.selectBank = selectBank;
         
         window.toggleAvoidCurrent = async () => {
             if(!currentBankId || studyQueue.length === 0) return;
@@ -277,18 +253,12 @@
             if(!progressMap[idx]) progressMap[idx] = {};
             progressMap[idx].avoid = !progressMap[idx].avoid;
             await setDoc(doc(db, 'users', currentUser.uid, 'progress', currentBankId), { reviews: progressMap }, { merge: true });
-            buildQueue(); 
+            buildQueue();
         };
 
-        window.jumpToCard = (idx) => {
-            studyQueue = studyQueue.filter(i => i !== idx);
-            studyQueue.unshift(idx);
-            closeModal('modal-status');
-            renderCard();
-        };
+        window.jumpToCard = (idx) => { studyQueue = studyQueue.filter(i => i !== idx); studyQueue.unshift(idx); closeModal('modal-status'); renderCard(); };
 
         window.openStatusList = () => {
-            if(!currentBankId) return;
             const body = document.getElementById('status-list-body');
             body.innerHTML = allCards.map((c, i) => `
                 <div onclick="jumpToCard(${i})" style="padding:10px; background:#2a2a2a; border-radius:6px; cursor:pointer; display:flex; justify-content:space-between; border:1px solid #444;">
@@ -299,25 +269,11 @@
             openModal('modal-status');
         };
 
-        [span_8](start_span)// 滑動邏輯[span_8](end_span)
-        const cardEl = document.getElementById('active-card');
-        cardEl.addEventListener('touchstart', e => { 
-            if(isQuizMode) return; touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY; cardEl.style.transition = 'none';
-        });
-        cardEl.addEventListener('touchmove', e => {
-            if(isQuizMode) return;
-            const dx = e.touches[0].clientX - touchStartX; const dy = e.touches[0].clientY - touchStartY;
-            cardEl.style.transform = `translate(${dx}px, ${dy}px) rotate(${dx*0.05}deg)`;
-            cardEl.classList.toggle('swipe-left', dx < -80); cardEl.classList.toggle('swipe-right', dx > 80); cardEl.classList.toggle('swipe-down', dy > 80);
-        });
-        cardEl.addEventListener('touchend', e => {
-            if(isQuizMode) return;
-            const dx = e.changedTouches[0].clientX - touchStartX; const dy = e.changedTouches[0].clientY - touchStartY;
-            if(dx < -100) handleAction('left'); else if(dx > 100) handleAction('right'); else if(dy > 100) handleAction('down');
-            else { cardEl.style.transition = '0.3s'; cardEl.style.transform = 'translate(0,0)'; }
-            cardEl.classList.remove('swipe-left', 'swipe-right', 'swipe-down');
-        });
+        window.exportData = () => { const blob = new Blob([JSON.stringify(banks)], {type:'application/json'}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'backup.json'; a.click(); };
+        window.importData = (e) => { const reader = new FileReader(); reader.onload = async (ev) => { const imported = JSON.parse(ev.target.result); const batch = writeBatch(db); imported.forEach(b => { const ref = doc(collection(db, 'public_question_banks')); batch.set(ref, {title:b.title, questions:b.questions, order:Date.now()}); }); await batch.commit(); alert("匯入成功"); }; reader.readAsText(e.target.files[0]); };
 
+        window.applySettings = () => { const s = parseInt(document.getElementById('set-start').value) || 1; const e = parseInt(document.getElementById('set-end').value) || allCards.length; buildQueue({start:s, end:e}); closeModal('modal-settings'); };
+        
         async function handleAction(dir) {
             const idx = studyQueue.shift(); historyStack.push(idx);
             if(studyMode === 'smart') {
@@ -332,42 +288,24 @@
             renderCard();
         }
 
-        window.exportData = () => {
-            const blob = new Blob([JSON.stringify(banks)], {type: 'application/json'});
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a'); a.href = url; a.download = 'question_banks_backup.json'; a.click();
-        };
+        // 手勢監聽
+        cardEl.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY; cardEl.style.transition = 'none'; });
+        cardEl.addEventListener('touchmove', e => {
+            const dx = e.touches[0].clientX - touchStartX; const dy = e.touches[0].clientY - touchStartY;
+            cardEl.style.transform = `translate(${dx}px, ${dy}px) rotate(${dx*0.05}deg)`;
+            cardEl.classList.toggle('swipe-left', dx < -80); cardEl.classList.toggle('swipe-right', dx > 80); cardEl.classList.toggle('swipe-down', dy > 80);
+        });
+        cardEl.addEventListener('touchend', e => {
+            const dx = e.changedTouches[0].clientX - touchStartX; const dy = e.changedTouches[0].clientY - touchStartY;
+            if(dx < -100) handleAction('left'); else if(dx > 100) handleAction('right'); else if(dy > 100) handleAction('down');
+            else { cardEl.style.transition = '0.3s'; cardEl.style.transform = 'translate(0,0)'; }
+            cardEl.classList.remove('swipe-left', 'swipe-right', 'swipe-down');
+        });
 
-        window.importData = (event) => {
-            const reader = new FileReader();
-            reader.onload = async (e) => {
-                const imported = JSON.parse(e.target.result);
-                const batch = writeBatch(db);
-                imported.forEach(b => {
-                    const ref = doc(collection(db, 'public_question_banks'));
-                    batch.set(ref, { title: b.title, questions: b.questions, order: Date.now() });
-                });
-                await batch.commit(); alert("匯入成功");
-            };
-            reader.readAsText(event.target.files[0]);
-        };
-
-        window.applySettings = () => {
-            const start = parseInt(document.getElementById('set-start').value) || 1;
-            const end = parseInt(document.getElementById('set-end').value) || allCards.length;
-            isQuizMode = document.getElementById('set-quiz').checked;
-            buildQueue({start, end}); closeModal('modal-settings');
-        };
-        window.cycleMask = () => { maskLevel = (maskLevel % 3) + 1; document.getElementById('mask-btn').innerText = `遮罩: Lv${maskLevel}`; renderCard(); };
-        window.undoAction = () => { if(historyStack.length) studyQueue.unshift(historyStack.pop()); renderCard(); };
-        window.skipAction = () => { studyQueue.push(studyQueue.shift()); renderCard(); };
-        window.toggleAdmin = () => { isAdmin = !isAdmin; document.body.classList.toggle('is-admin', isAdmin); document.getElementById('lock-btn').innerText = isAdmin ? "🔓" : "🔒"; };
-        
         function renderSidebar() {
             const list = document.getElementById('bank-list');
-            list.innerHTML = banks.map(b => `<div onclick="window.selectBank('${b.id}'); window.toggleSidebar(false)" style="padding:12px; margin-bottom:5px; background:#2a2a2a; border-radius:8px; cursor:pointer; color:#fff;">${b.title} (${b.questions.length} 題)</div>`).join('');
+            list.innerHTML = banks.map(b => `<div onclick="window.selectBank('${b.id}'); window.toggleSidebar(false)" style="padding:12px; margin-bottom:5px; background:#2a2a2a; border-radius:8px; cursor:pointer;">${b.title}</div>`).join('');
         }
-        window.selectBank = selectBank;
     </script>
 </body>
 </html>
