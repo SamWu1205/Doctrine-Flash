@@ -16,29 +16,34 @@
             font-family: -apple-system, sans-serif; margin: 0; padding: 0;
             display: flex; flex-direction: column; height: 100vh; overflow: hidden; user-select: none;
         }
+        /* 導航與工具列 */
         .header { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; background: var(--surface-color); border-bottom: 1px solid #333; height: 50px; z-index: 20; }
         .header-left { display: flex; align-items: center; gap: 10px; }
         .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #555; }
         .status-dot.online { background: #4caf50; box-shadow: 0 0 5px #4caf50; }
         .toolbar { display: flex; gap: 8px; overflow-x: auto; padding: 10px; background: #181818; border-bottom: 1px solid #333; }
         .tool-btn { background: #333; color: #ccc; border: 1px solid #444; padding: 5px 12px; border-radius: 15px; font-size: 0.85rem; white-space: nowrap; cursor: pointer; }
+        .tool-btn.active-avoid { background: rgba(229, 115, 115, 0.2); color: var(--danger-color); border-color: var(--danger-color); }
+        
+        /* 卡片區域 */
         .main-container { flex: 1; position: relative; display: flex; justify-content: center; align-items: center; overflow: hidden; perspective: 1000px; }
         .card { 
             width: 90%; max-width: 600px; height: 85%; background: var(--surface-color); border-radius: 16px; padding: 20px;
             box-shadow: 0 10px 20px rgba(0,0,0,0.3); display: flex; flex-direction: column; position: absolute;
             transition: transform 0.3s ease, opacity 0.3s ease; box-sizing: border-box; border: 1px solid #333;
-            touch-action: none; /* 重要：防止手機網頁滑動干擾 */
+            touch-action: none; 
         }
         .swipe-indicator { position: absolute; top: 20px; right: 20px; font-size: 2rem; font-weight: bold; opacity: 0; border: 4px solid; padding: 5px 10px; border-radius: 8px; transform: rotate(15deg); pointer-events: none; }
         .swipe-left .indicator-forget { opacity: 1; color: var(--danger-color); border-color: var(--danger-color); }
         .swipe-right .indicator-easy { opacity: 1; color: var(--primary-color); border-color: var(--primary-color); }
         .swipe-down .indicator-blur { opacity: 1; color: var(--warning-color); border-color: var(--warning-color); top: auto; bottom: 20px; }
+        
+        /* 文字與遮罩 */
         .question-box { font-size: 1.3rem; font-weight: bold; color: #81c784; margin-bottom: 20px; }
         .answer-box { font-size: 1.15rem; line-height: 1.8; flex: 1; overflow-y: auto; white-space: pre-wrap; }
-        .mask-lv1, .mask-hidden { display: inline-block; width: 60px; height: 1.2rem; background: #333; color: transparent !important; border-bottom: 2px solid #555; }
-        .quiz-area { display: none; flex-direction: column; gap: 10px; margin-top: 15px; flex: 1; }
-        .quiz-area.active { display: flex; }
-        .quiz-input { width: 100%; flex: 1; background: #181818; border: 1px solid #444; color: #fff; padding: 10px; border-radius: 8px; resize: none; font-size: 1.1rem; }
+        .mask-lv1 { display: inline-block; width: 80px; height: 1.2rem; background: #2a2a2a; border-radius: 4px; border: 1px solid #444; vertical-align: bottom; }
+        
+        /* 側邊欄與彈窗 */
         .sidebar { position: fixed; top: 0; left: 0; width: 85%; max-width: 320px; height: 100%; background: var(--surface-color); z-index: 101; transform: translateX(-100%); transition: transform 0.3s; display: flex; flex-direction: column; border-right: 1px solid #333; }
         .sidebar.active { transform: translateX(0); }
         .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 100; display: none; }
@@ -46,9 +51,15 @@
         .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 200; display: none; align-items: center; justify-content: center; }
         .modal.active { display: flex; }
         .modal-content { background: #1e1e1e; padding: 20px; border-radius: 12px; width: 90%; max-width: 500px; max-height: 85vh; overflow-y: auto; border: 1px solid #444; }
+        
         .admin-only { display: none !important; }
         body.is-admin .admin-only { display: flex !important; }
         .mode-btn.active { background: var(--primary-color); color: #fff; }
+        
+        /* 測驗區 */
+        .quiz-area { display: none; flex-direction: column; gap: 10px; margin-top: 15px; flex: 1; }
+        .quiz-area.active { display: flex; }
+        .quiz-input { width: 100%; flex: 1; background: #181818; border: 1px solid #444; color: #fff; padding: 10px; border-radius: 8px; resize: none; font-size: 1.1rem; }
     </style>
 </head>
 <body>
@@ -67,8 +78,8 @@
         <div class="admin-only" style="padding:15px; border-top:1px solid #333; flex-direction:column; gap:10px;">
             <button onclick="openModal('modal-import')" style="width:100%; padding:10px; background:var(--primary-color); border:none; border-radius:6px; color:#fff;">＋ 新增題庫</button>
             <div style="display:flex; gap:5px;">
-                <button onclick="exportData()" style="flex:1; padding:8px; background:#444; border:none; border-radius:4px; color:#fff; font-size:0.8rem;">📤 備份題庫</button>
-                <button onclick="document.getElementById('file-input').click()" style="flex:1; padding:8px; background:#444; border:none; border-radius:4px; color:#fff; font-size:0.8rem;">📥 還原題庫</button>
+                <button onclick="exportData()" style="flex:1; padding:8px; background:#444; border:none; border-radius:4px; color:#fff; font-size:0.8rem;">📤 匯出</button>
+                <button onclick="document.getElementById('file-input').click()" style="flex:1; padding:8px; background:#444; border:none; border-radius:4px; color:#fff; font-size:0.8rem;">📥 匯入</button>
                 <input type="file" id="file-input" style="display:none" onchange="importData(event)">
             </div>
         </div>
@@ -80,8 +91,8 @@
             <div id="status-dot" class="status-dot"></div>
         </div>
         <div style="background:#333; border-radius:20px; padding:2px;">
-            <button class="tool-btn mode-btn active" id="mode-smart" onclick="setMode('smart')" style="border:none;">智慧</button>
-            <button class="tool-btn mode-btn" id="mode-cram" onclick="setMode('cram')" style="border:none;">瀏覽</button>
+            <button class="tool-btn mode-btn active" id="mode-smart" onclick="setMode('smart')">智慧</button>
+            <button class="tool-btn mode-btn" id="mode-cram" onclick="setMode('cram')">瀏覽</button>
         </div>
         <button onclick="toggleAdmin()" id="lock-btn" style="background:none; border:none; font-size:1.2rem;">🔒</button>
     </div>
@@ -89,12 +100,13 @@
     <div class="toolbar">
         <button class="tool-btn" onclick="openSettings()">⚙️ 測驗設定</button>
         <button class="tool-btn" onclick="openStatusList()">📋 熟悉度列表</button>
+        <button class="tool-btn" id="btn-avoid" onclick="toggleAvoidCurrent()">🚫 避開此題</button>
     </div>
 
     <div class="main-container">
         <div id="empty-state" style="display:none; text-align:center;">
             <div style="font-size:4rem;">🎉</div><h2>任務完成</h2>
-            <button onclick="openSettings('reset')" style="padding:10px 20px; border-radius:20px; background:var(--primary-color); border:none; color:#fff;">重新開始</button>
+            <button onclick="openSettings('reset')" style="padding:10px 20px; border-radius:20px; background:var(--primary-color); border:none; color:#fff;">重設範圍</button>
         </div>
 
         <div class="card" id="active-card">
@@ -104,11 +116,11 @@
             <div style="display:flex; justify-content:space-between; font-size:0.8rem; color:#666; margin-bottom:5px;">
                 <span id="q-index">#0</span><span>剩餘: <span id="queue-count">0</span></span>
             </div>
-            <div class="question-box" id="q-text">請先從左側選單選擇題庫</div>
+            <div class="question-box" id="q-text">請先選擇題庫</div>
             <div class="answer-box" id="a-text"></div>
             <div class="quiz-area" id="quiz-area">
-                <textarea id="quiz-input" class="quiz-input" placeholder="請輸入答案..."></textarea>
-                <button id="btn-quiz-next" style="padding:12px; background:var(--secondary-color); border:none; color:#fff; border-radius:8px; font-weight:bold;" onclick="nextQuizQuestion()">儲存並下一題</button>
+                <textarea id="quiz-input" class="quiz-input" placeholder="輸入答案..."></textarea>
+                <button id="btn-quiz-next" style="padding:12px; background:var(--secondary-color); border:none; color:#fff; border-radius:8px;" onclick="nextQuizQuestion()">儲存並下一題</button>
             </div>
             <div id="control-bar-main" style="display:flex; justify-content:space-between; margin-top:auto; padding-top:10px; border-top:1px solid #333;">
                 <button class="tool-btn" onclick="undoAction()">↩ 復原</button>
@@ -120,25 +132,24 @@
 
     <div id="modal-settings" class="modal"><div class="modal-content">
         <h3>📖 抽題範圍設定</h3>
-        <input type="number" id="set-start" placeholder="起始題號" value="1">
-        <input type="number" id="set-end" placeholder="結束題號" style="margin-top:10px;">
-        <label style="display:flex; align-items:center; margin-top:10px;"><input type="checkbox" id="set-quiz"> ✍️ 啟用小考模式</label>
-        <button onclick="applySettings()" style="width:100%; padding:12px; background:var(--primary-color); color:#fff; border:none; margin-top:15px; border-radius:6px;">確認</button>
+        <input type="number" id="set-start" placeholder="起始題號" value="1" style="width:100%; padding:8px; margin-bottom:10px; background:#2a2a2a; border:1px solid #444; color:#fff;">
+        <input type="number" id="set-end" placeholder="結束題號" style="width:100%; padding:8px; margin-bottom:10px; background:#2a2a2a; border:1px solid #444; color:#fff;">
+        <label style="display:flex; align-items:center; margin-top:10px; color:#fff;"><input type="checkbox" id="set-quiz"> ✍️ 啟用小考模式</label>
+        <button onclick="applySettings()" style="width:100%; padding:12px; background:var(--primary-color); color:#fff; border:none; margin-top:15px; border-radius:6px;">確認開始</button>
         <button onclick="closeModal('modal-settings')" style="width:100%; background:none; color:#aaa; border:none; margin-top:10px;">取消</button>
     </div></div>
 
     <div id="modal-status" class="modal"><div class="modal-content" style="max-width:600px;">
-        <h3>📊 熟悉度一覽</h3>
-        <div id="status-list-body" style="display:flex; flex-direction:column; gap:5px;"></div>
-        <button onclick="closeModal('modal-status')" style="width:100%; padding:10px; margin-top:15px;">關閉</button>
+        <h3>📊 熟悉度一覽 (點擊可跳題)</h3>
+        <div id="status-list-body" style="display:flex; flex-direction:column; gap:8px;"></div>
+        <button onclick="closeModal('modal-status')" style="width:100%; padding:10px; margin-top:15px; background:#333; border:none; color:#fff; border-radius:4px;">關閉</button>
     </div></div>
 
     <div id="modal-import" class="modal"><div class="modal-content">
-        <h3>新增題庫</h3>
-        <input id="imp-title" placeholder="題庫名稱">
-        <textarea id="imp-content" style="height:150px; margin-top:10px;" placeholder="Q:題目\nA:答案"></textarea>
-        <button onclick="submitImport()" style="width:100%; padding:12px; background:var(--primary-color); color:#fff; border:none; margin-top:15px;">儲存</button>
-        <button onclick="closeModal('modal-import')" style="width:100%; border:none; background:none; color:#aaa; margin-top:10px;">取消</button>
+        <h3>批次新增題庫</h3>
+        <input id="imp-title" placeholder="題庫名稱" style="width:100%; padding:8px; background:#2a2a2a; border:1px solid #444; color:#fff;">
+        <textarea id="imp-content" style="height:150px; margin-top:10px; width:100%; background:#2a2a2a; border:1px solid #444; color:#fff;" placeholder="Q:題目&#10;A:答案"></textarea>
+        <button onclick="submitImport()" style="width:100%; padding:12px; background:var(--primary-color); color:#fff; border:none; margin-top:15px;">儲存至雲端</button>
     </div></div>
 
     <script type="module">
@@ -161,9 +172,9 @@
 
         let currentUser, banks = [], allCards = [], studyQueue = [], historyStack = [], progressMap = {};
         let currentBankId = null, studyMode = 'smart', isQuizMode = false, maskLevel = 1, isAdmin = false;
-        let quizAnswers = [], touchStartX = 0, touchStartY = 0;
+        let touchStartX = 0, touchStartY = 0;
 
-        // 初始化與認證
+        [span_2](start_span)// 初始化與認證[span_2](end_span)
         signInAnonymously(auth);
         onAuthStateChanged(auth, user => {
             if(user) {
@@ -174,7 +185,7 @@
             }
         });
 
-        // 核心功能：讀取題庫
+        [span_3](start_span)// 讀取題庫[span_3](end_span)
         function loadBanks() {
             onSnapshot(collection(db, 'public_question_banks'), (snap) => {
                 banks = snap.docs.map(d => ({id: d.id, ...d.data()}));
@@ -196,14 +207,16 @@
             renderSidebar();
         }
 
-        // 核心功能：建立佇列
+        [span_4](start_span)[span_5](start_span)// 建立佇列與過濾[span_4](end_span)[span_5](end_span)
         function buildQueue(filter = null) {
             let candidates = allCards.map((_, i) => i);
+            candidates = candidates.filter(i => !progressMap[i]?.avoid);
+
             if(filter) {
                 candidates = candidates.filter(i => (i+1) >= filter.start && (i+1) <= filter.end);
             }
             
-            if(studyMode === 'smart') {
+            if(studyMode === 'smart' && !filter) {
                 const now = Date.now();
                 studyQueue = candidates.filter(i => (progressMap[i]?.nextReview || 0) <= now);
             } else {
@@ -212,7 +225,7 @@
             renderCard();
         }
 
-        // 渲染卡片介面
+        [span_6](start_span)[span_7](start_span)// 介面渲染[span_6](end_span)[span_7](end_span)
         function renderCard() {
             const card = document.getElementById('active-card');
             const empty = document.getElementById('empty-state');
@@ -223,39 +236,33 @@
             }
 
             card.style.display = 'flex'; empty.style.display = 'none';
-            card.style.transform = 'translate(0,0) rotate(0deg)'; card.style.opacity = '1';
+            card.style.transform = 'translate(0,0)'; card.style.opacity = '1';
             
             const idx = studyQueue[0];
             const data = allCards[idx];
             document.getElementById('q-index').innerText = `#${idx + 1}`;
             document.getElementById('q-text').innerText = data.q;
             document.getElementById('queue-count').innerText = studyQueue.length;
+            
+            const btnAvoid = document.getElementById('btn-avoid');
+            btnAvoid.classList.toggle('active-avoid', !!progressMap[idx]?.avoid);
 
             const aDiv = document.getElementById('a-text');
             const quizArea = document.getElementById('quiz-area');
             const ctrlBar = document.getElementById('control-bar-main');
 
             if(isQuizMode) {
-                aDiv.innerText = "(測驗模式中)"; quizArea.classList.add('active'); ctrlBar.style.display = 'none';
+                aDiv.innerText = "(測驗作答中)"; quizArea.classList.add('active'); ctrlBar.style.display = 'none';
                 document.getElementById('quiz-input').value = '';
             } else {
                 quizArea.classList.remove('active'); ctrlBar.style.display = 'flex';
-                renderMaskContent(aDiv, data.a);
+                aDiv.innerHTML = maskLevel === 1 ? '<div class="mask-lv1"></div>' : (maskLevel === 2 ? data.a.substring(0, 5) + '...' : data.a);
             }
         }
 
-        function renderMaskContent(container, text) {
-            container.innerHTML = '';
-            if(maskLevel === 3) { container.innerText = text; return; }
-            if(maskLevel === 1) { container.innerHTML = '<span class="mask-lv1"></span>'; return; }
-            // Lv2 遮罩邏輯...
-            container.innerText = text.substring(0, 2) + " ... (點擊右下跳過或左右滑動)";
-        }
-
-        // --- 互動功能 ---
+        // --- 全域掛載函數 ---
         window.setMode = (m) => { studyMode = m; buildQueue(); 
-            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(`mode-${m}`).classList.add('active');
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('active', b.id === `mode-${m}`));
         };
         window.toggleSidebar = (s) => { 
             document.getElementById('sidebar').classList.toggle('active', s);
@@ -263,45 +270,56 @@
         };
         window.openModal = (id) => document.getElementById(id).classList.add('active');
         window.closeModal = (id) => document.getElementById(id).classList.remove('active');
-        window.toggleAdmin = () => {
-            if(!isAdmin && prompt("PIN") === "1001") {
-                isAdmin = true; document.body.classList.add('is-admin'); document.getElementById('lock-btn').innerText = "🔓";
-            } else {
-                isAdmin = false; document.body.classList.remove('is-admin'); document.getElementById('lock-btn').innerText = "🔒";
-            }
+        
+        window.toggleAvoidCurrent = async () => {
+            if(!currentBankId || studyQueue.length === 0) return;
+            const idx = studyQueue[0];
+            if(!progressMap[idx]) progressMap[idx] = {};
+            progressMap[idx].avoid = !progressMap[idx].avoid;
+            await setDoc(doc(db, 'users', currentUser.uid, 'progress', currentBankId), { reviews: progressMap }, { merge: true });
+            buildQueue(); 
         };
 
-        // --- 滑動邏輯 ---
+        window.jumpToCard = (idx) => {
+            studyQueue = studyQueue.filter(i => i !== idx);
+            studyQueue.unshift(idx);
+            closeModal('modal-status');
+            renderCard();
+        };
+
+        window.openStatusList = () => {
+            if(!currentBankId) return;
+            const body = document.getElementById('status-list-body');
+            body.innerHTML = allCards.map((c, i) => `
+                <div onclick="jumpToCard(${i})" style="padding:10px; background:#2a2a2a; border-radius:6px; cursor:pointer; display:flex; justify-content:space-between; border:1px solid #444;">
+                    <span>#${i+1} ${c.q.substring(0, 15)}...</span>
+                    <span style="color:${progressMap[i]?.avoid ? '#e57373' : '#888'}">${progressMap[i]?.avoid ? '🚫 避開' : '📋'}</span>
+                </div>
+            `).join('');
+            openModal('modal-status');
+        };
+
+        [span_8](start_span)// 滑動邏輯[span_8](end_span)
         const cardEl = document.getElementById('active-card');
         cardEl.addEventListener('touchstart', e => { 
-            if(isQuizMode) return;
-            touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY; 
-            cardEl.style.transition = 'none';
+            if(isQuizMode) return; touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY; cardEl.style.transition = 'none';
         });
         cardEl.addEventListener('touchmove', e => {
             if(isQuizMode) return;
-            const dx = e.touches[0].clientX - touchStartX;
-            const dy = e.touches[0].clientY - touchStartY;
+            const dx = e.touches[0].clientX - touchStartX; const dy = e.touches[0].clientY - touchStartY;
             cardEl.style.transform = `translate(${dx}px, ${dy}px) rotate(${dx*0.05}deg)`;
-            cardEl.classList.toggle('swipe-left', dx < -50);
-            cardEl.classList.toggle('swipe-right', dx > 50);
-            cardEl.classList.toggle('swipe-down', dy > 50);
+            cardEl.classList.toggle('swipe-left', dx < -80); cardEl.classList.toggle('swipe-right', dx > 80); cardEl.classList.toggle('swipe-down', dy > 80);
         });
         cardEl.addEventListener('touchend', e => {
             if(isQuizMode) return;
-            const dx = e.changedTouches[0].clientX - touchStartX;
-            const dy = e.changedTouches[0].clientY - touchStartY;
-            if(dx < -100) handleAction('left');
-            else if(dx > 100) handleAction('right');
-            else if(dy > 100) handleAction('down');
+            const dx = e.changedTouches[0].clientX - touchStartX; const dy = e.changedTouches[0].clientY - touchStartY;
+            if(dx < -100) handleAction('left'); else if(dx > 100) handleAction('right'); else if(dy > 100) handleAction('down');
             else { cardEl.style.transition = '0.3s'; cardEl.style.transform = 'translate(0,0)'; }
             cardEl.classList.remove('swipe-left', 'swipe-right', 'swipe-down');
         });
 
         async function handleAction(dir) {
-            const idx = studyQueue.shift();
-            historyStack.push(idx);
-            
+            const idx = studyQueue.shift(); historyStack.push(idx);
             if(studyMode === 'smart') {
                 let p = progressMap[idx] || { interval: 0 };
                 if(dir === 'right') p.interval = p.interval === 0 ? 1 : Math.ceil(p.interval * 2.5);
@@ -310,91 +328,46 @@
                 progressMap[idx] = p;
                 setDoc(doc(db, 'users', currentUser.uid, 'progress', currentBankId), { reviews: progressMap }, { merge: true });
                 if(dir !== 'right') studyQueue.push(idx);
-            } else {
-                studyQueue.push(idx);
-            }
+            } else { if(dir !== 'right') studyQueue.push(idx); }
             renderCard();
         }
 
-        // --- 匯出匯入功能 ---
         window.exportData = () => {
-            const data = JSON.stringify(banks);
-            const blob = new Blob([data], {type: 'application/json'});
+            const blob = new Blob([JSON.stringify(banks)], {type: 'application/json'});
             const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url; a.download = `backup_${new Date().toLocaleDateString()}.json`;
-            a.click();
+            const a = document.createElement('a'); a.href = url; a.download = 'question_banks_backup.json'; a.click();
         };
 
         window.importData = (event) => {
-            const file = event.target.files[0];
-            if(!file) return;
             const reader = new FileReader();
             reader.onload = async (e) => {
-                try {
-                    const imported = JSON.parse(e.target.result);
-                    const batch = writeBatch(db);
-                    imported.forEach(b => {
-                        const ref = doc(collection(db, 'public_question_banks'));
-                        batch.set(ref, { title: b.title, questions: b.questions, order: Date.now() });
-                    });
-                    await batch.commit();
-                    alert("匯入成功");
-                } catch(err) { alert("格式錯誤: " + err.message); }
+                const imported = JSON.parse(e.target.result);
+                const batch = writeBatch(db);
+                imported.forEach(b => {
+                    const ref = doc(collection(db, 'public_question_banks'));
+                    batch.set(ref, { title: b.title, questions: b.questions, order: Date.now() });
+                });
+                await batch.commit(); alert("匯入成功");
             };
-            reader.readAsText(file);
+            reader.readAsText(event.target.files[0]);
         };
 
-        // --- 其他掛載函數 ---
-        window.openSettings = (type) => { 
-            if(type==='reset') { buildQueue(); return; }
-            document.getElementById('set-end').value = allCards.length;
-            openModal('modal-settings'); 
-        };
         window.applySettings = () => {
             const start = parseInt(document.getElementById('set-start').value) || 1;
             const end = parseInt(document.getElementById('set-end').value) || allCards.length;
             isQuizMode = document.getElementById('set-quiz').checked;
-            buildQueue({start, end});
-            closeModal('modal-settings');
+            buildQueue({start, end}); closeModal('modal-settings');
         };
-        window.cycleMask = () => { maskLevel = maskLevel === 3 ? 1 : maskLevel + 1; 
-            document.getElementById('mask-btn').innerText = `遮罩: Lv${maskLevel}`;
-            renderCard(); 
-        };
+        window.cycleMask = () => { maskLevel = (maskLevel % 3) + 1; document.getElementById('mask-btn').innerText = `遮罩: Lv${maskLevel}`; renderCard(); };
         window.undoAction = () => { if(historyStack.length) studyQueue.unshift(historyStack.pop()); renderCard(); };
         window.skipAction = () => { studyQueue.push(studyQueue.shift()); renderCard(); };
-        window.submitImport = async () => {
-            const t = document.getElementById('imp-title').value;
-            const txt = document.getElementById('imp-content').value;
-            const regex = /Q:(.*?)\nA:(.*?)(?=Q:|$)/gs;
-            let m, nc = [];
-            while ((m = regex.exec(txt)) !== null) nc.push({ q: m[1].trim(), a: m[2].trim() });
-            if(nc.length) { 
-                await addDoc(collection(db, 'public_question_banks'), { title: t, questions: nc, order: Date.now() }); 
-                closeModal('modal-import'); 
-            }
-        };
+        window.toggleAdmin = () => { isAdmin = !isAdmin; document.body.classList.toggle('is-admin', isAdmin); document.getElementById('lock-btn').innerText = isAdmin ? "🔓" : "🔒"; };
+        
         function renderSidebar() {
             const list = document.getElementById('bank-list');
-            list.innerHTML = banks.map(b => `
-                <div class="tool-btn" style="margin-bottom:5px; justify-content:space-between; display:flex;" onclick="selectBank('${b.id}'); toggleSidebar(false)">
-                    <span>${b.title}</span>
-                    <small>${b.questions.length}題</small>
-                </div>
-            `).join('');
+            list.innerHTML = banks.map(b => `<div onclick="window.selectBank('${b.id}'); window.toggleSidebar(false)" style="padding:12px; margin-bottom:5px; background:#2a2a2a; border-radius:8px; cursor:pointer; color:#fff;">${b.title} (${b.questions.length} 題)</div>`).join('');
         }
         window.selectBank = selectBank;
-        window.openStatusList = () => {
-            const body = document.getElementById('status-list-body');
-            body.innerHTML = allCards.map((c, i) => `
-                <div style="padding:8px; background:#333; border-radius:4px; font-size:0.9rem;">
-                    #${i+1} ${c.q.substring(0, 15)}... 
-                    <span style="color:var(--warning-color)">[${progressMap[i]?.interval || 0}天]</span>
-                </div>
-            `).join('');
-            openModal('modal-status');
-        };
     </script>
 </body>
 </html>
