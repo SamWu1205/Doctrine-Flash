@@ -728,7 +728,7 @@
             }
         };
 
-        // 測驗模式：結算成績
+        // 測驗模式：結算成績並顯示比對修正
         function showQuizResult() {
             const emptyEl = document.getElementById('empty-state');
             document.getElementById('active-card').style.display = 'none';
@@ -747,7 +747,10 @@
 
                 if (!normUser) {
                     // 未作答(跳過)
-                    detailHtml += `<div style="padding:10px; border-bottom:1px solid #333;"><b>Q${i+1}:</b> 跳過未作答 (得 0 分)</div>`;
+                    detailHtml += `<div style="padding:10px; border-bottom:1px solid #333;">
+                        <b>Q${i+1}:</b> 跳過未作答 (得 0 分)
+                        <div style="color:#aaa; font-size:0.85rem; margin-top:5px;"><b>正確答案:</b> <span style="color:#ddd;">${ans.correct}</span></div>
+                    </div>`;
                 } else {
                     let m = normTarget.length, n = normUser.length;
                     let dp = Array(m+1).fill(0).map(()=>Array(n+1).fill(0));
@@ -764,10 +767,15 @@
                     // 每錯一字扣 1 分，扣完為止(最多扣至0分)
                     qScore = Math.max(0, scorePerQ - wrongCount);
                     
+                    // 產生直觀的比對 HTML
+                    let diffHtml = generateDiffHtml((ans.correct || "").trim(), (ans.user || "").trim());
+                    
                     detailHtml += `
                     <div style="padding:10px; border-bottom:1px solid #333;">
                         <b>Q${i+1}:</b> 得 ${parseFloat(qScore.toFixed(1))} 分 <span style="color:var(--danger-color);">(扣 ${wrongCount} 分)</span><br>
-                        <div style="color:#aaa; font-size:0.85rem; margin-top:5px;"><b>你的答案:</b> ${ans.user}</div>
+                        <div style="font-size:0.85rem; color:#aaa; margin-top:5px;">比對結果：</div>
+                        <div style="line-height:1.6; font-size:1rem; padding-bottom:5px;">${diffHtml}</div>
+                        <div style="color:#aaa; font-size:0.85rem; margin-top:5px;"><b>正確答案:</b> <span style="color:#ddd;">${ans.correct}</span></div>
                     </div>`;
                 }
                 finalScore += qScore;
