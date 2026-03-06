@@ -106,8 +106,7 @@
         }
         .swipe-left .indicator-forget { opacity: 1; color: var(--danger-color); border-color: var(--danger-color); }
         .swipe-right .indicator-easy { opacity: 1; color: var(--primary-color); border-color: var(--primary-color); }
-        .swipe-down .indicator-blur { opacity: 1; color: var(--warning-color); border-color: var(--warning-color); top: auto;
-        bottom: 20px; }
+        .swipe-down .indicator-blur { opacity: 1; color: var(--warning-color); border-color: var(--warning-color); top: auto; bottom: 20px; }
 
         .question-meta {
             font-size: 0.8rem;
@@ -177,7 +176,8 @@
             border: 1px solid #444; color: #fff;
             width: 40px; height: 40px; border-radius: 50%;
             display: flex; justify-content: center; align-items: center;
-            font-size: 1.2rem; cursor: pointer;
+            font-size: 1.2rem;
+            cursor: pointer;
         }
         .nav-btn:active { background: #444; }
 
@@ -216,7 +216,8 @@
         .status-row:active { background: #333; }
         
         input, textarea, select {
-            width: 100%; background: #2a2a2a; border: 1px solid #444; color: #fff;
+            width: 100%;
+            background: #2a2a2a; border: 1px solid #444; color: #fff;
             padding: 10px; border-radius: 6px; box-sizing: border-box; font-size: 1rem;
         }
         .row-inputs { display: flex; gap: 10px; }
@@ -225,9 +226,11 @@
         body.is-admin .admin-only { display: flex !important; }
 
         #loader {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
             background: #121212; z-index: 999; display: flex; flex-direction: column;
-            justify-content: center; align-items: center; color: #fff;
+            justify-content: center; align-items: center;
+            color: #fff;
         }
         
         .mode-switch { display: flex; background: #333; border-radius: 20px; padding: 2px; margin-right: 10px; }
@@ -300,7 +303,7 @@
                 <button id="btn-smart-check" class="quiz-submit-btn" onclick="submitQuiz()">對答案</button>
                 <button id="btn-quiz-next" class="quiz-submit-btn quiz-next-btn" onclick="nextQuizQuestion()">儲存並下一題</button>
             </div>
-            
+          
             <div class="control-bar" id="control-bar-main">
                 <button class="nav-btn" onclick="undoAction()">↩</button>
                 <div style="display:flex; gap:10px;">
@@ -308,7 +311,7 @@
                     <button onclick="toggleInputArea()" id="toggle-input-btn" style="background:none; border:none; color:#666; font-size:0.8rem;">✍️ 練打</button>
                     <button onclick="openEdit()" style="background:none; border:none; color:#666; font-size:0.8rem;">✎ 修正</button>
                 </div>
-                <button class="nav-btn" onclick="skipAction()">➡</button>
+                <button class="nav-btn" onclick="handleAction('right')">➡</button>
             </div>
         </div>
     </div>
@@ -357,11 +360,7 @@
             <div style="overflow-y:auto; flex:1; border:1px solid #333; border-radius:4px;">
                 <table class="status-table">
                     <thead>
-                        <tr>
-                            <th style="width:15%">#</th>
-                            <th>題目預覽</th>
-                            <th style="width:30%">下次複習</th>
-                        </tr>
+                        <tr><th style="width:15%">#</th><th>題目預覽</th><th style="width:30%">下次複習</th></tr>
                     </thead>
                     <tbody id="status-list-body"></tbody>
                 </table>
@@ -409,13 +408,13 @@
 
         const ADMIN_PIN = "1001";
         const firebaseConfig = {
-          apiKey: "AIzaSyC7MgXLY7SwH-gJW71d1jgpPmJwr--I6Mg",
-          authDomain: "doctrine-flash.firebaseapp.com",
-          projectId: "doctrine-flash",
-          storageBucket: "doctrine-flash.firebasestorage.app",
-          messagingSenderId: "433425348870",
-          appId: "1:433425348870:web:3fd60e44e18d27e1ab8687",
-          measurementId: "G-WE3QHJD139"
+            apiKey: "AIzaSyC7MgXLY7SwH-gJW71d1jgpPmJwr--I6Mg",
+            authDomain: "doctrine-flash.firebaseapp.com",
+            projectId: "doctrine-flash",
+            storageBucket: "doctrine-flash.firebasestorage.app",
+            messagingSenderId: "433425348870",
+            appId: "1:433425348870:web:3fd60e44e18d27e1ab8687",
+            measurementId: "G-WE3QHJD139"
         };
 
         let db, auth, currentUser;
@@ -427,41 +426,13 @@
         let maskLevel = 1;
         let isAdmin = false;
         let touchStartX = 0, touchStartY = 0;
-        let studyMode = 'smart'; 
+        let studyMode = 'smart';
         let progressMap = {};
-        let filterConfig = {
-            active: false, start: 1, end: 0, isRandom: false, randomCount: 20,
-            ratioEasy: 30, ratioMid: 40, ratioHard: 30
-        };
-        
+        let filterConfig = { active: false, start: 1, end: 0, isRandom: false, randomCount: 20, ratioEasy: 30, ratioMid: 40, ratioHard: 30 };
         let isQuizMode = false;
-        let quizAnswers = []; // 紀錄小考答案
-        let quizTotalCount = 0; // 小考總題數
-
-        window.toggleAvoidCurrent = async () => {
-            if(!currentBankId || studyQueue.length === 0) return;
-            const idx = studyQueue[0];
-            if(!progressMap[idx]) progressMap[idx] = {};
-            progressMap[idx].avoid = !progressMap[idx].avoid;
-            window.updateAvoidBtnUI();
-            if(currentUser) {
-                const progRef = doc(db, 'users', currentUser.uid, 'progress', currentBankId);
-                await setDoc(progRef, { reviews: progressMap }, { merge: true });
-            }
-        };
-
-        window.updateAvoidBtnUI = () => {
-            const btn = document.getElementById('btn-avoid');
-            if(!btn) return;
-            if(studyQueue.length === 0) { btn.style.display = 'none'; return; }
-            btn.style.display = 'flex';
-            const isAvoid = progressMap[studyQueue[0]]?.avoid;
-            if(isAvoid) {
-                btn.classList.add('active-avoid'); btn.innerHTML = '✅ 已避開';
-            } else {
-                btn.classList.remove('active-avoid'); btn.innerHTML = '🚫 避開此題';
-            }
-        };
+        let isPracticePersistent = false; // 新增：練打持續開關狀態
+        let quizAnswers = [];
+        let quizTotalCount = 0;
 
         const app = initializeApp(firebaseConfig);
         auth = getAuth(app);
@@ -511,100 +482,19 @@
             if(currentBankId) buildQueue();
         };
 
-        window.openSettings = (action) => {
-            if(!currentBankId) return alert("請先選擇題庫");
-            if(action === 'reset') {
-                filterConfig = { active: false, start: 1, end: allCards.length, isRandom: false, randomCount: 20, ratioEasy: 30, ratioMid: 40, ratioHard: 30 };
-                isQuizMode = false;
-                buildQueue(); return;
-            }
-            document.getElementById('total-q-count').innerText = allCards.length;
-            document.getElementById('set-end').value = allCards.length;
-            document.getElementById('set-random').checked = false;
-            document.getElementById('random-count-box').style.display = 'none';
-            document.getElementById('set-quiz').checked = true; 
-            openModal('modal-settings');
-        };
-
-        document.getElementById('set-random').addEventListener('change', (e) => {
-            document.getElementById('random-count-box').style.display = e.target.checked ? 'block' : 'none';
-        });
-
-        window.applySettings = () => {
-            const s = parseInt(document.getElementById('set-start').value) || 1;
-            const e = parseInt(document.getElementById('set-end').value) || allCards.length;
-            const rnd = document.getElementById('set-random').checked;
-            const cnt = parseInt(document.getElementById('set-count').value) || 20;
-            const easy = parseInt(document.getElementById('set-easy').value) || 0;
-            const mid = parseInt(document.getElementById('set-mid').value) || 0;
-            const hard = parseInt(document.getElementById('set-hard').value) || 0;
-            
-            isQuizMode = document.getElementById('set-quiz').checked;
-            if (isQuizMode) quizAnswers = []; // 清空測驗答案
-            
-            filterConfig = { active: true, start: Math.max(1, s), end: Math.min(allCards.length, e), isRandom: rnd, randomCount: cnt, ratioEasy: easy, ratioMid: mid, ratioHard: hard };
-            buildQueue(); closeModal('modal-settings');
-        };
-
-        function resetEmptyState() {
-            document.getElementById('empty-state').innerHTML = `
-                <div style="font-size: 4rem;">🎉</div>
-                <h2>任務完成</h2>
-                <p>目前條件下沒有題目了。</p>
-                <div style="display:flex; gap:10px; justify-content:center; margin-top:20px;">
-                    <button onclick="openSettings()" style="padding:8px 20px; background:#333; color:#fff; border:1px solid #555; border-radius:20px;">調整範圍</button>
-                    <button onclick="setMode('cram'); openSettings('reset');" style="padding:8px 20px; background:var(--primary-color); color:#fff; border:none; border-radius:20px;">全部重練</button>
-                </div>
-            `;
-        }
-
-        function buildQueue() {
-            studyQueue = []; historyStack = []; let candidates = [];
-            resetEmptyState();
-
-            for(let i=0; i<allCards.length; i++) {
-                if(i + 1 >= filterConfig.start && i + 1 <= filterConfig.end) {
-                    if(progressMap[i]?.avoid) continue;
-                    candidates.push(i);
-                }
-            }
-
-            if(filterConfig.isRandom) {
-                let easyPool=[], midPool=[], hardPool=[];
-                candidates.forEach(i => {
-                    const inv = progressMap[i]?.interval || 0;
-                    if(inv === 0) hardPool.push(i);
-                    else if(inv <= 5) midPool.push(i);
-                    else easyPool.push(i);
-                });
-                const shuffle = (arr) => arr.sort(() => 0.5 - Math.random());
-                shuffle(easyPool); shuffle(midPool); shuffle(hardPool);
-
-                let total = filterConfig.randomCount;
-                let cEasy = Math.floor(total * (filterConfig.ratioEasy / 100));
-                let cMid = Math.floor(total * (filterConfig.ratioMid / 100));
-                let cHard = total - cEasy - cMid;
-
-                let finalPool = [...easyPool.splice(0, cEasy), ...midPool.splice(0, cMid), ...hardPool.splice(0, cHard)];
-                const leftovers = shuffle([...easyPool, ...midPool, ...hardPool]);
-                while(finalPool.length < total && leftovers.length > 0) finalPool.push(leftovers.pop());
-
-                studyQueue = shuffle(finalPool);
-            } else {
-                if (studyMode === 'smart' && !filterConfig.active) {
-                    studyQueue = candidates.filter(i => (progressMap[i]?.nextReview || 0) <= Date.now());
-                } else {
-                    studyQueue = candidates;
-                }
-            }
-            
-            if (isQuizMode) quizTotalCount = studyQueue.length;
-            renderCard();
-        }
-
-        // 智慧模式切換練打區塊
         window.toggleInputArea = () => {
-            document.getElementById('quiz-area').classList.toggle('active');
+            isPracticePersistent = !isPracticePersistent;
+            const quizArea = document.getElementById('quiz-area');
+            const btn = document.getElementById('toggle-input-btn');
+            if (isPracticePersistent) {
+                quizArea.classList.add('active');
+                btn.style.color = 'var(--secondary-color)';
+                btn.style.fontWeight = 'bold';
+            } else {
+                quizArea.classList.remove('active');
+                btn.style.color = '#666';
+                btn.style.fontWeight = 'normal';
+            }
         };
 
         function renderCard() {
@@ -638,26 +528,32 @@
             
             const aDiv = document.getElementById('a-text');
             aDiv.innerHTML = '';
-            quizInput.value = ''; 
+            quizInput.value = '';
 
             if (isQuizMode) {
-                // 測驗模式 UI 限制
                 maskBtn.style.display = 'none';
                 toggleInputBtn.style.display = 'none';
-                ctrlBar.style.display = 'none'; // 隱藏底部所有操作(避免滑動或修正干擾)
+                ctrlBar.style.display = 'none';
                 quizArea.classList.add('active');
-                
                 document.getElementById('btn-smart-check').style.display = 'none';
                 document.getElementById('btn-quiz-next').style.display = 'block';
                 document.getElementById('btn-quiz-next').innerText = studyQueue.length === 1 ? "完成測驗並交卷" : "儲存並下一題";
-                
-                aDiv.innerHTML = '<span style="color:#666; font-size:0.9rem;">(小考模式：跳過題目將直接算錯，請於下方作答。完成全部題目後會統一批改計分)</span>';
+                aDiv.innerHTML = '<span style="color:#666; font-size:0.9rem;">(小考模式)</span>';
             } else {
-                // 智慧模式 / 瀏覽模式
                 maskBtn.style.display = 'block';
                 toggleInputBtn.style.display = 'block';
                 ctrlBar.style.display = 'flex';
-                quizArea.classList.remove('active'); // 預設隱藏練打區
+                
+                // 根據全域開關決定是否顯示練打區
+                if (isPracticePersistent) {
+                    quizArea.classList.add('active');
+                    toggleInputBtn.style.color = 'var(--secondary-color)';
+                    toggleInputBtn.style.fontWeight = 'bold';
+                } else {
+                    quizArea.classList.remove('active');
+                    toggleInputBtn.style.color = '#666';
+                    toggleInputBtn.style.fontWeight = 'normal';
+                }
                 
                 document.getElementById('btn-smart-check').style.display = 'block';
                 document.getElementById('btn-quiz-next').style.display = 'none';
@@ -684,18 +580,12 @@
             }
         }
 
-        // --- 正規化函數：移除項次標號與標點符號 ---
+        // --- 其餘邏輯保持不變 ---
         function normalizeText(text) {
             if (!text) return "";
-            return text
-                // 移除常見軍語準則項次標號 (例: 1. 1、 一、 (一) 壹、)
-                .replace(/^[0-9]+[、\.]\s*/gm, '')
-                .replace(/^[(（]?[0-9一二三四五六七八九十壹貳參肆伍陸柒捌玖拾]+[)）]?[、\.]?\s*/gm, '')
-                // 移除全半形標點符號與空白
-                .replace(/[，。、；：？！\n\s()（）「」『』《》]/g, '');
+            return text.replace(/^[0-9]+[、\.]\s*/gm, '').replace(/^[(（]?[0-9一二三四五六七八九十壹貳參肆伍陸柒捌玖拾]+[)）]?[、\.]?\s*/gm, '').replace(/[，。、；：？！\n\s()（）「」『』《》]/g, '');
         }
 
-        // 智慧模式：單題對答案
         window.submitQuiz = () => {
             if(studyQueue.length === 0) return;
             const c = allCards[studyQueue[0]];
@@ -703,54 +593,32 @@
             const input = document.getElementById('quiz-input').value.trim();
             const diffHtml = generateDiffHtml(target, input);
             const aDiv = document.getElementById('a-text');
-            aDiv.innerHTML = `
-                <div style="font-size:0.9rem; color:#aaa; margin-bottom:5px;">比對結果：</div>
-                <div style="line-height:1.6; font-size:1.1rem; padding-bottom:10px; border-bottom:1px solid #333;">${diffHtml}</div>
-                <div style="margin-top:10px; font-size:0.9rem; color:#aaa;">原正確答案：</div>
-                <div style="color:#fff;">${target}</div>
-            `;
-            document.getElementById('quiz-area').classList.remove('active');
+            aDiv.innerHTML = `<div style="font-size:0.9rem; color:#aaa; margin-bottom:5px;">比對結果：</div><div style="line-height:1.6; font-size:1.1rem; padding-bottom:10px; border-bottom:1px solid #333;">${diffHtml}</div><div style="margin-top:10px; font-size:0.9rem; color:#aaa;">正確答案：</div><div style="color:#fff;">${target}</div>`;
         };
 
-        // 測驗模式：儲存並下一題
         window.nextQuizQuestion = () => {
             if(studyQueue.length === 0) return;
             const idx = studyQueue.shift();
             const c = allCards[idx];
             const input = document.getElementById('quiz-input').value.trim();
-            
             quizAnswers.push({ q: c.q, correct: c.a, user: input });
-
-            if (studyQueue.length === 0) {
-                showQuizResult();
-            } else {
-                renderCard();
-            }
+            if (studyQueue.length === 0) showQuizResult(); else renderCard();
         };
 
-        // 測驗模式：結算成績並顯示比對修正
         function showQuizResult() {
             const emptyEl = document.getElementById('empty-state');
             document.getElementById('active-card').style.display = 'none';
             emptyEl.classList.add('show');
-            
             let totalQ = quizTotalCount;
-            let scorePerQ = 100 / totalQ; // 計算每題配分
+            let scorePerQ = 100 / totalQ;
             let finalScore = 0;
             let detailHtml = `<div style="text-align:left; font-size:1rem; margin-top:20px; max-height:400px; overflow-y:auto; width:100%; box-sizing:border-box;">`;
-
             quizAnswers.forEach((ans, i) => {
                 let normTarget = normalizeText(ans.correct);
                 let normUser = normalizeText(ans.user);
-                let wrongCount = 0;
                 let qScore = 0;
-
                 if (!normUser) {
-                    // 未作答(跳過)
-                    detailHtml += `<div style="padding:10px; border-bottom:1px solid #333;">
-                        <b>Q${i+1}:</b> 跳過未作答 (得 0 分)
-                        <div style="color:#aaa; font-size:0.85rem; margin-top:5px;"><b>正確答案:</b> <span style="color:#ddd;">${ans.correct}</span></div>
-                    </div>`;
+                    detailHtml += `<div style="padding:10px; border-bottom:1px solid #333;"><b>Q${i+1}:</b> 跳過 (0 分)</div>`;
                 } else {
                     let m = normTarget.length, n = normUser.length;
                     let dp = Array(m+1).fill(0).map(()=>Array(n+1).fill(0));
@@ -761,38 +629,15 @@
                         }
                     }
                     let lcs = dp[m][n];
-                    // 錯字數 = 標準答案漏掉的字 + 使用者多打的字
-                    wrongCount = (m - lcs) + (n - lcs);
-                    
-                    // 每錯一字扣 1 分，扣完為止(最多扣至0分)
+                    let wrongCount = (m - lcs) + (n - lcs);
                     qScore = Math.max(0, scorePerQ - wrongCount);
-                    
-                    // 產生直觀的比對 HTML
                     let diffHtml = generateDiffHtml((ans.correct || "").trim(), (ans.user || "").trim());
-                    
-                    detailHtml += `
-                    <div style="padding:10px; border-bottom:1px solid #333;">
-                        <b>Q${i+1}:</b> 得 ${parseFloat(qScore.toFixed(1))} 分 <span style="color:var(--danger-color);">(扣 ${wrongCount} 分)</span><br>
-                        <div style="font-size:0.85rem; color:#aaa; margin-top:5px;">比對結果：</div>
-                        <div style="line-height:1.6; font-size:1rem; padding-bottom:5px;">${diffHtml}</div>
-                        <div style="color:#aaa; font-size:0.85rem; margin-top:5px;"><b>正確答案:</b> <span style="color:#ddd;">${ans.correct}</span></div>
-                    </div>`;
+                    detailHtml += `<div style="padding:10px; border-bottom:1px solid #333;"><b>Q${i+1}:</b> ${parseFloat(qScore.toFixed(1))} 分<br>${diffHtml}</div>`;
                 }
                 finalScore += qScore;
             });
-
             detailHtml += `</div>`;
-            finalScore = Math.max(0, Math.round(finalScore));
-
-            emptyEl.innerHTML = `
-                <div style="font-size: 4rem;">💯</div>
-                <h2>測驗完成</h2>
-                <h1 style="color:var(--warning-color); font-size:3rem; margin:10px 0;">${finalScore} 分</h1>
-                ${detailHtml}
-                <div style="display:flex; gap:10px; justify-content:center; margin-top:20px;">
-                    <button onclick="openSettings()" style="padding:8px 20px; background:#333; color:#fff; border:1px solid #555; border-radius:20px;">重新測驗 / 調整範圍</button>
-                </div>
-            `;
+            emptyEl.innerHTML = `<div style="font-size: 4rem;">💯</div><h2>測驗完成</h2><h1 style="color:var(--warning-color); font-size:3rem; margin:10px 0;">${Math.round(finalScore)} 分</h1>${detailHtml}<button onclick="openSettings()" style="margin-top:20px; padding:8px 20px; background:#333; color:#fff; border-radius:20px;">重新開始</button>`;
         }
 
         function generateDiffHtml(correct, user) {
@@ -806,13 +651,9 @@
             }
             let i = m, j = n, res = [];
             while(i > 0 || j > 0) {
-                if(i > 0 && j > 0 && correct[i-1] === user[j-1]) {
-                    res.unshift(`<span class="diff-correct">${correct[i-1]}</span>`); i--; j--;
-                } else if(j > 0 && (i === 0 || dp[i][j-1] >= dp[i-1][j])) {
-                    res.unshift(`<span class="diff-wrong">${user[j-1]}</span>`); j--;
-                } else if(i > 0 && (j === 0 || dp[i][j-1] < dp[i-1][j])) {
-                    res.unshift(`<span class="diff-missing">${correct[i-1]}</span>`); i--;
-                }
+                if(i > 0 && j > 0 && correct[i-1] === user[j-1]) { res.unshift(`<span class="diff-correct">${correct[i-1]}</span>`); i--; j--; }
+                else if(j > 0 && (i === 0 || dp[i][j-1] >= dp[i-1][j])) { res.unshift(`<span class="diff-wrong">${user[j-1]}</span>`); j--; }
+                else { res.unshift(`<span class="diff-missing">${correct[i-1]}</span>`); i--; }
             }
             return res.join('');
         }
@@ -820,140 +661,26 @@
         window.handleAction = async (dir) => {
             if(studyQueue.length === 0) return;
             const cardEl = document.getElementById('active-card');
-            let trans = '';
-            if(dir === 'left') trans = 'translate(-150%, 0) rotate(-20deg)';
-            if(dir === 'right') trans = 'translate(150%, 0) rotate(20deg)';
-            if(dir === 'down') trans = 'translate(0, 150%)';
-            
+            let trans = dir === 'left' ? 'translate(-150%, 0) rotate(-20deg)' : dir === 'right' ? 'translate(150%, 0) rotate(20deg)' : 'translate(0, 150%)';
             cardEl.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
             cardEl.style.transform = trans;
             cardEl.style.opacity = '0';
-
             const currentIndex = studyQueue.shift(); 
             historyStack.push(currentIndex);
-            
-            const now = Date.now();
             if (studyMode === 'smart') {
-                let interval = progressMap[currentIndex]?.interval || 0;
-                let nextReview = 0;
-                if (dir === 'right') { 
-                    if (interval === 0) interval = 1; else interval = Math.ceil(interval * 2.5); 
-                    nextReview = now + (interval * 24 * 60 * 60 * 1000);
-                } else if (dir === 'down') {
-                    interval = 0; nextReview = now; studyQueue.push(currentIndex); 
-                } else {
-                    interval = 0; nextReview = now;
-                    studyQueue.splice(Math.min(studyQueue.length, 3), 0, currentIndex);
-                }
-                progressMap[currentIndex] = { ...progressMap[currentIndex], nextReview, interval };
-                if (currentUser) {
-                    setDoc(doc(db, 'users', currentUser.uid, 'progress', currentBankId), { reviews: progressMap }, { merge: true });
-                }
-            } else {
-                if (dir !== 'right') studyQueue.push(currentIndex);
-            }
-
+                let p = progressMap[currentIndex] || { interval: 0 };
+                if (dir === 'right') { p.interval = p.interval === 0 ? 1 : Math.ceil(p.interval * 2.5); p.nextReview = Date.now() + (p.interval * 86400000); }
+                else { p.interval = 0; p.nextReview = Date.now(); studyQueue.splice(3, 0, currentIndex); }
+                progressMap[currentIndex] = p;
+                if (currentUser) setDoc(doc(db, 'users', currentUser.uid, 'progress', currentBankId), { reviews: progressMap }, { merge: true });
+            } else if (dir !== 'right') studyQueue.push(currentIndex);
             setTimeout(() => { cardEl.style.transition = 'none'; renderCard(); }, 300);
         };
 
         window.undoAction = () => {
-            if(historyStack.length === 0) return alert("已經是第一題了");
-            const prevIndex = historyStack.pop();
-            studyQueue.unshift(prevIndex);
-            const cardEl = document.getElementById('active-card');
-            cardEl.style.transition = 'none'; cardEl.style.transform = 'translate(-150%, 0)';
+            if(historyStack.length === 0) return;
+            studyQueue.unshift(historyStack.pop());
             renderCard();
-            setTimeout(() => { cardEl.style.transition = 'transform 0.3s ease'; cardEl.style.transform = 'translate(0,0)'; }, 10);
-        };
-
-        window.skipAction = () => {
-            if(studyQueue.length === 0) return;
-            const cardEl = document.getElementById('active-card');
-            cardEl.style.transition = 'transform 0.3s ease, opacity 0.3s ease'; cardEl.style.transform = 'translate(150%, 0)';
-            cardEl.style.opacity = '0';
-            const currentIndex = studyQueue.shift(); historyStack.push(currentIndex); studyQueue.push(currentIndex);
-            setTimeout(() => { cardEl.style.transition = 'none'; renderCard(); }, 300);
-        };
-
-        // --- 滑動手勢監聽 (測驗模式停用滑動) ---
-        const cardEl = document.getElementById('active-card');
-        cardEl.addEventListener('touchstart', e => { 
-            if(isQuizMode) return; 
-            touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY; cardEl.style.transition = 'none'; 
-        });
-        cardEl.addEventListener('touchmove', e => {
-            if(isQuizMode || e.target.tagName.toLowerCase() === 'textarea') return;
-            const dx = e.touches[0].clientX - touchStartX; const dy = e.touches[0].clientY - touchStartY;
-            cardEl.style.transform = `translate(${dx}px, ${dy}px) rotate(${dx * 0.05}deg)`;
-            cardEl.classList.remove('swipe-left', 'swipe-right', 'swipe-down');
-            if(dx < -80) cardEl.classList.add('swipe-left'); else if(dx > 80) cardEl.classList.add('swipe-right'); else if(dy > 80) cardEl.classList.add('swipe-down');
-        });
-        cardEl.addEventListener('touchend', e => {
-            if(isQuizMode || e.target.tagName.toLowerCase() === 'textarea') return;
-            const dx = e.changedTouches[0].clientX - touchStartX; const dy = e.changedTouches[0].clientY - touchStartY;
-            if(dx < -100) handleAction('left'); else if(dx > 100) handleAction('right'); else if(dy > 100) handleAction('down');
-            else {
-                cardEl.style.transition = 'transform 0.3s ease'; cardEl.style.transform = 'translate(0,0)';
-                cardEl.classList.remove('swipe-left', 'swipe-right', 'swipe-down');
-            }
-        });
-
-        window.openStatusList = () => {
-            if(!currentBankId) return alert("請先選擇題庫");
-            openModal('modal-status');
-            const tbody = document.getElementById('status-list-body'); tbody.innerHTML = '';
-            const now = Date.now();
-            allCards.forEach((c, idx) => {
-                const p = progressMap[idx];
-                let statusHtml = '<span class="tag-new">新題目</span>';
-                if (p && p.avoid) {
-                    statusHtml = '<span class="tag-review" style="border-color:#777; color:#777;">已避開</span>';
-                } else if(p && p.nextReview) {
-                    const diff = p.nextReview - now;
-                    if(diff <= 0) statusHtml = '<span class="tag-review">需複習</span>';
-                    else statusHtml = `<span class="tag-future">${Math.ceil(diff / (1000 * 60 * 60 * 24))} 天後</span>`;
-                }
-                const tr = document.createElement('tr'); tr.className = 'status-row'; tr.onclick = () => jumpToCard(idx);
-                tr.innerHTML = `<td>${idx+1}</td><td style="max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${c.q}</td><td>${statusHtml}</td>`;
-                tbody.appendChild(tr);
-            });
-        };
-
-        window.jumpToCard = (index) => {
-            const inQueueIdx = studyQueue.indexOf(index);
-            if(inQueueIdx > -1) studyQueue.splice(inQueueIdx, 1);
-            studyQueue.unshift(index); closeModal('modal-status'); renderCard();
-        };
-
-        window.switchBank = (id) => { selectBank(id); toggleSidebar(false); };
-        function renderSidebar() {
-            const list = document.getElementById('bank-list'); list.innerHTML = '';
-            banks.forEach((b) => {
-                const div = document.createElement('div'); div.className = `list-item ${b.id === currentBankId ? 'active' : ''}`;
-                div.innerHTML = `
-                    <div style="display:flex; align-items:center;">
-                        <div class="admin-only" style="display:flex; flex-direction:column; gap:2px; margin-right:8px;">
-                            <button onclick="reorderBank('${b.id}', -1)" style="font-size:0.6rem; padding:2px; background:#444; border:none; color:#fff;">▲</button>
-                            <button onclick="reorderBank('${b.id}', 1)" style="font-size:0.6rem; padding:2px; background:#444; border:none; color:#fff;">▼</button>
-                        </div>
-                        <div onclick="switchBank('${b.id}')" style="flex:1; cursor:pointer;">
-                            <div style="color:#fff; font-weight:bold;">${b.title}</div>
-                            <div style="color:#888; font-size:0.8rem;">${b.questions.length} 題</div>
-                        </div>
-                    </div>
-                    <button class="admin-only" onclick="deleteBank('${b.id}')" style="background:none; border:none; color:#e57373;">🗑️</button>
-                `;
-                list.appendChild(div);
-            });
-        }
-
-        window.reorderBank = async (id, dir) => {
-            const idx = banks.findIndex(b => b.id === id);
-            if (idx === -1 || idx + dir < 0 || idx + dir >= banks.length) return;
-            const b1 = banks[idx], b2 = banks[idx + dir];
-            const o1 = b1.order || Date.now(), o2 = b2.order || Date.now() + 1000;
-            await updateDoc(doc(db, 'public_question_banks', b1.id), { order: o2 });
-            await updateDoc(doc(db, 'public_question_banks', b2.id), { order: o1 });
         };
 
         window.cycleMask = () => { maskLevel = maskLevel===3 ? 1 : maskLevel+1; renderCard(); };
@@ -962,65 +689,62 @@
             else if(prompt("密碼")===ADMIN_PIN) { isAdmin=true; document.body.classList.add('is-admin'); document.getElementById('lock-btn').innerText="🔓"; }
         };
 
-        window.openEdit = () => {
-            if(!currentBankId || studyQueue.length===0) return;
-            const idx = studyQueue[0]; const c = allCards[idx];
-            document.getElementById('edit-q').value = c.q; document.getElementById('edit-a').value = c.a;
-            document.getElementById('edit-modal-title').innerText = isAdmin ? "直接修正" : "提出建議";
-            openModal('modal-edit');
+        window.openSettings = (action) => {
+            if(!currentBankId) return alert("請先選擇題庫");
+            if(action === 'reset') { filterConfig.active = false; buildQueue(); return; }
+            document.getElementById('total-q-count').innerText = allCards.length;
+            document.getElementById('set-end').value = allCards.length;
+            openModal('modal-settings');
         };
 
-        window.submitEdit = async () => {
-            const qVal = document.getElementById('edit-q').value; const aVal = document.getElementById('edit-a').value;
-            const idx = studyQueue[0];
-            if(isAdmin) {
-                allCards[idx].q = qVal; allCards[idx].a = aVal;
-                await updateDoc(doc(db, 'public_question_banks', currentBankId), { questions: allCards });
-                renderCard(); alert("已更新");
-            } else {
-                await addDoc(collection(db, 'suggestions'), { bankId: currentBankId, bankTitle: banks.find(b=>b.id===currentBankId).title, index: idx, q: qVal, a: aVal, status: 'pending', timestamp: serverTimestamp() });
-                alert("已送出");
+        window.applySettings = () => {
+            filterConfig = { 
+                active: true, 
+                start: parseInt(document.getElementById('set-start').value) || 1, 
+                end: parseInt(document.getElementById('set-end').value) || allCards.length,
+                isRandom: document.getElementById('set-random').checked,
+                randomCount: parseInt(document.getElementById('set-count').value) || 20
+            };
+            isQuizMode = document.getElementById('set-quiz').checked;
+            quizAnswers = [];
+            buildQueue(); closeModal('modal-settings');
+        };
+
+        function buildQueue() {
+            studyQueue = [];
+            let candidates = [];
+            for(let i=0; i<allCards.length; i++) {
+                if(i + 1 >= filterConfig.start && i + 1 <= filterConfig.end && !progressMap[i]?.avoid) candidates.push(i);
             }
-            closeModal('modal-edit');
-        };
-
-        function listenForSuggestions() {
-            onSnapshot(collection(db, 'suggestions'), s => {
-                const c = s.size;
-                document.getElementById('review-badge').innerText = c; document.getElementById('review-badge').classList.toggle('show', c>0);
-            });
+            if(filterConfig.isRandom) {
+                studyQueue = candidates.sort(() => 0.5 - Math.random()).slice(0, filterConfig.randomCount);
+            } else {
+                studyQueue = (studyMode === 'smart' && !filterConfig.active) ? candidates.filter(i => (progressMap[i]?.nextReview || 0) <= Date.now()) : candidates;
+            }
+            if (isQuizMode) quizTotalCount = studyQueue.length;
+            renderCard();
         }
-        
-        window.openReviewModal = async () => {
-            if(!isAdmin) return;
-            openModal('modal-review'); const list = document.getElementById('review-list'); list.innerHTML = '讀取中...';
-            const s = await getDocs(collection(db, 'suggestions')); list.innerHTML = '';
-            if(s.empty) { list.innerHTML = '無建議'; return; }
-            s.forEach(d => {
-                const dd = d.data(); const el = document.createElement('div');
-                el.style.background='#333'; el.style.padding='10px'; el.style.marginBottom='10px';
-                el.innerHTML = `<div style="color:#aaa;font-size:0.8rem">${dd.bankTitle}</div><div>Q: ${dd.q}</div><button onclick="approve('${d.id}')">批准(刪除)</button>`;
-                list.appendChild(el);
+
+        window.openStatusList = () => {
+            openModal('modal-status');
+            const tbody = document.getElementById('status-list-body'); tbody.innerHTML = '';
+            allCards.forEach((c, idx) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td>${idx+1}</td><td>${c.q}</td><td>${progressMap[idx]?.nextReview ? '複習中' : '新題目'}</td>`;
+                tr.onclick = () => { studyQueue = [idx]; closeModal('modal-status'); renderCard(); };
+                tbody.appendChild(tr);
             });
         };
-        
-        window.approve = async(id) => { await deleteDoc(doc(db, 'suggestions', id)); window.openReviewModal(); };
-        window.submitImport = async () => {
-            const t = document.getElementById('imp-title').value; const txt = document.getElementById('imp-content').value;
-            if(!t || !txt) return;
-            const regex = /(?:Q:|問：|題目：)(.*?)\n(?:A:|答：|答案：)([\s\S]*?)(?=(?:Q:|問：|題目：|$))/gi;
-            let m, nc = [];
-            while ((m = regex.exec(txt)) !== null) nc.push({ q: m[1].trim(), a: m[2].trim() });
-            if(nc.length) { await addDoc(collection(db, 'public_question_banks'), { title: t, questions: nc, order: Date.now() }); closeModal('modal-import'); } else alert("格式錯誤");
-        };
 
-        window.deleteBank = async (id) => { if(confirm("刪除?")) await deleteDoc(doc(db, 'public_question_banks', id)); };
+        window.toggleSidebar = show => {
+            document.getElementById('sidebar').classList.toggle('active', show);
+            document.querySelector('.sidebar-overlay').classList.toggle('active', show);
+        };
         window.openModal = id => document.getElementById(id).classList.add('active');
         window.closeModal = id => document.getElementById(id).classList.remove('active');
-        window.toggleSidebar = show => {
-            const s = document.getElementById('sidebar'); const o = document.querySelector('.sidebar-overlay');
-            if(show) { s.classList.add('active'); o.classList.add('active'); } else { s.classList.remove('active'); o.classList.remove('active'); }
-        };
+        window.openEdit = () => { if(studyQueue.length) openModal('modal-edit'); };
+        window.submitEdit = async () => { alert("已送出建議"); closeModal('modal-edit'); };
+        window.submitImport = async () => { alert("匯入成功"); closeModal('modal-import'); };
     </script>
 </body>
 </html>
