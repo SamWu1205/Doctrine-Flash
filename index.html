@@ -3,62 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>準則快憶通 SRS v2.2 - 練打增強版</title>
+    <title>準則快憶通 SRS v2.2 - 穩定增強版</title>
     <style>
         :root {
-            -[span_0](start_span)-bg-color: #121212;[span_0](end_span)
-            -[span_1](start_span)-surface-color: #1e1e1e;[span_1](end_span)
-            --primary-color: #4caf50; -[span_2](start_span)-secondary-color: #2196f3;[span_2](end_span)
-            --danger-color: #e57373; -[span_3](start_span)-warning-color: #ffb74d;[span_3](end_span)
-            --text-main: #e0e0e0; -[span_4](start_span)-text-sub: #aaaaaa;[span_4](end_span)
+            --bg-color: #121212; --surface-color: #1e1e1e;
+            --primary-color: #4caf50; --secondary-color: #2196f3;
+            --danger-color: #e57373; --warning-color: #ffb74d;
+            --text-main: #e0e0e0; --text-sub: #aaaaaa;
         }
         body {
-            [span_5](start_span)background-color: var(--bg-color);[span_5](end_span)
-            [span_6](start_span)color: var(--text-main);[span_6](end_span)
-            [span_7](start_span)font-family: -apple-system, sans-serif; margin: 0; padding: 0;[span_7](end_span)
-            [span_8](start_span)display: flex; flex-direction: column; height: 100vh; overflow: hidden;[span_8](end_span)
+            background-color: var(--bg-color); color: var(--text-main);
+            font-family: -apple-system, sans-serif; margin: 0; padding: 0;
+            display: flex; flex-direction: column; height: 100vh; overflow: hidden;
         }
-        [span_9](start_span).header { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px;[span_9](end_span)
-            [span_10](start_span)background: var(--surface-color); border-bottom: 1px solid #333; height: 50px; z-index: 20;[span_10](end_span)
-        }
-        [span_11](start_span).toolbar { display: flex; gap: 8px; overflow-x: auto; padding: 10px; background: #181818;[span_11](end_span)
-            border-bottom: 1px solid #333; [span_12](start_span)}
-        .tool-btn { background: #333; color: #ccc;[span_12](end_span)
-            [span_13](start_span)border: 1px solid #444; padding: 5px 12px; border-radius: 15px; font-size: 0.85rem; white-space: nowrap; cursor: pointer;[span_13](end_span)
-        }
-        [span_14](start_span).main-container { flex: 1; position: relative; display: flex; justify-content: center; align-items: center;[span_14](end_span)
-            overflow: hidden; perspective: 1000px; [span_15](start_span)}
-        .card { 
-            width: 90%;[span_15](end_span)
-            [span_16](start_span)max-width: 600px; height: 85%; background: var(--surface-color); border-radius: 16px; padding: 20px;[span_16](end_span)
-            [span_17](start_span)box-shadow: 0 10px 20px rgba(0,0,0,0.3); display: flex; flex-direction: column;[span_17](end_span)
-            [span_18](start_span)position: absolute;[span_18](end_span)
-            [span_19](start_span)transition: transform 0.3s ease, opacity 0.3s ease; border: 1px solid #333; touch-action: none;[span_19](end_span)
-        }
-        [span_20](start_span).swipe-indicator { position: absolute; top: 20px; right: 20px; font-size: 2rem; font-weight: bold;[span_20](end_span)
-            [span_21](start_span)opacity: 0; border: 4px solid; padding: 5px 10px; border-radius: 8px; transform: rotate(15deg); pointer-events: none; z-index: 50;[span_21](end_span)
-        }
-        [span_22](start_span).swipe-left .indicator-blur { opacity: 1; color: var(--danger-color); border-color: var(--danger-color);[span_22](end_span) }
-        [span_23](start_span).swipe-right .indicator-easy { opacity: 1; color: var(--primary-color); border-color: var(--primary-color);[span_23](end_span) }
-        [span_24](start_span).question-box { font-size: 1.3rem; font-weight: bold; color: #81c784; margin-bottom: 20px;[span_24](end_span) }
-        [span_25](start_span).answer-box { font-size: 1.15rem; line-height: 1.8; flex: 1; overflow-y: auto; white-space: pre-wrap;[span_25](end_span)
-            position: relative; [span_26](start_span)}
-        .mask-lv1 { display: inline-block; width: 100%; height: 60px; background: #2a2a2a;[span_26](end_span)
-            border-radius: 8px; border: 1px dashed #444; [span_27](start_span)}
-        .modal { position: fixed; top: 0;[span_27](end_span)
-            [span_28](start_span)left: 0; width: 100%; height: 100%;[span_28](end_span)
-            [span_29](start_span)background: rgba(0,0,0,0.9); z-index: 200; display: none; align-items: center; justify-content: center;[span_29](end_span)
-        }
-        [span_30](start_span).modal.active { display: flex;[span_30](end_span) }
-        [span_31](start_span).modal-content { background: #1e1e1e; padding: 20px; border-radius: 12px; width: 90%; max-width: 500px;[span_31](end_span)
-            max-height: 85vh; overflow-y: auto; border: 1px solid #444; [span_32](start_span)}
-        input[type="number"] { width: 100%;[span_32](end_span)
-            [span_33](start_span)padding: 10px; background: #2a2a2a; border: 1px solid #444; color: #fff; border-radius: 6px; margin: 5px 0; box-sizing: border-box;[span_33](end_span)
-        }
-        [span_34](start_span).sidebar { position: fixed; top: 0; left: 0; width: 85%; max-width: 300px;[span_34](end_span)
-            [span_35](start_span)height: 100%; background: #1e1e1e; z-index: 210; transform: translateX(-100%); transition: 0.3s; border-right: 1px solid #333;[span_35](end_span)
-        }
-        [span_36](start_span).sidebar.active { transform: translateX(0);[span_36](end_span) }
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px;
+            background: var(--surface-color); border-bottom: 1px solid #333; height: 50px; z-index: 20; }
+        .toolbar { display: flex; gap: 8px; overflow-x: auto; padding: 10px; background: #181818; border-bottom: 1px solid #333; }
+        .tool-btn { background: #333; color: #ccc; border: 1px solid #444; padding: 5px 12px; border-radius: 15px; font-size: 0.85rem; white-space: nowrap; cursor: pointer; }
+        .main-container { flex: 1; position: relative; display: flex; justify-content: center; align-items: center; overflow: hidden; perspective: 1000px; }
+        .card { width: 90%; max-width: 600px; height: 85%; background: var(--surface-color); border-radius: 16px; padding: 20px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3); display: flex; flex-direction: column; position: absolute;
+            transition: transform 0.3s ease, opacity 0.3s ease; border: 1px solid #333; touch-action: none; }
+        .swipe-indicator { position: absolute; top: 20px; right: 20px; font-size: 2rem; font-weight: bold; opacity: 0; border: 4px solid; padding: 5px 10px; border-radius: 8px; transform: rotate(15deg); pointer-events: none; z-index: 50; }
+        .swipe-left .indicator-blur { opacity: 1; color: var(--danger-color); border-color: var(--danger-color); }
+        .swipe-right .indicator-easy { opacity: 1; color: var(--primary-color); border-color: var(--primary-color); }
+        .question-box { font-size: 1.3rem; font-weight: bold; color: #81c784; margin-bottom: 20px; }
+        .answer-box { font-size: 1.15rem; line-height: 1.8; flex: 1; overflow-y: auto; white-space: pre-wrap; position: relative; }
+        .mask-lv1 { display: inline-block; width: 100%; height: 60px; background: #2a2a2a; border-radius: 8px; border: 1px dashed #444; }
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 200; display: none; align-items: center; justify-content: center; }
+        .modal.active { display: flex; }
+        .modal-content { background: #1e1e1e; padding: 20px; border-radius: 12px; width: 90%; max-width: 500px; max-height: 85vh; overflow-y: auto; border: 1px solid #444; }
+        input[type="number"] { width: 100%; padding: 10px; background: #2a2a2a; border: 1px solid #444; color: #fff; border-radius: 6px; margin: 5px 0; box-sizing: border-box; }
+        .sidebar { position: fixed; top: 0; left: 0; width: 85%; max-width: 300px; height: 100%; background: #1e1e1e; z-index: 210; transform: translateX(-100%); transition: 0.3s; border-right: 1px solid #333; }
+        .sidebar.active { transform: translateX(0); }
     </style>
 </head>
 <body>
@@ -74,342 +51,213 @@
     </div>
 
     <div class="header">
-        [span_37](start_span)<button onclick="toggleSidebar(true)" style="background:none; border:none; color:#fff; font-size:1.5rem;">☰</button>[span_37](end_span)
+        <button onclick="toggleSidebar(true)" style="background:none; border:none; color:#fff; font-size:1.5rem;">☰</button>
         <div style="background:#333; border-radius:20px; display:flex;">
-            [span_38](start_span)<button class="tool-btn" id="m-smart" onclick="setMode('smart')" style="border:none;">智慧</button>[span_38](end_span)
-            [span_39](start_span)<button class="tool-btn" id="m-cram" onclick="setMode('cram')" style="border:none;">瀏覽</button>[span_39](end_span)
+            <button class="tool-btn" id="m-smart" onclick="setMode('smart')" style="border:none;">智慧</button>
+            <button class="tool-btn" id="m-cram" onclick="setMode('cram')" style="border:none;">瀏覽</button>
         </div>
-        [span_40](start_span)<button onclick="toggleAdmin()" id="lock-btn" style="background:none; border:none; font-size: 1.2rem;">🔒</button>[span_40](end_span)
+        <button onclick="toggleAdmin()" id="lock-btn" style="background:none; border:none; font-size: 1.2rem;">🔒</button>
     </div>
 
     <div class="toolbar">
-        [span_41](start_span)<button class="tool-btn" onclick="openSettings()">⚙️ 測驗設定</button>[span_41](end_span)
-        <button class="tool-btn" id="typing-btn" onclick="toggleTypingMode()">⌨️ 練打: 關</button> 
-        [span_42](start_span)<button class="tool-btn" onclick="openStatusList()">📋 熟悉度列表</button>[span_42](end_span)
-        [span_43](start_span)<button class="tool-btn" onclick="toggleAvoidCurrent()">🚫 避開此題</button>[span_43](end_span)
+        <button class="tool-btn" onclick="openSettings()">⚙️ 測驗設定</button>
+        <button class="tool-btn" id="typing-btn" onclick="toggleTypingMode()">⌨️ 練打: 關</button>
+        <button class="tool-btn" onclick="openStatusList()">📋 熟悉度列表</button>
+        <button class="tool-btn" onclick="toggleAvoidCurrent()">🚫 避開此題</button>
     </div>
 
     <div class="main-container">
-        [span_44](start_span)<div id="empty-state" style="display:none; text-align:center; padding:20px; width:100%;"></div>[span_44](end_span)
-
+        <div id="empty-state" style="display:none; text-align:center; padding:20px; width:100%;"></div>
         <div class="card" id="active-card" onclick="handleFlip()">
-            [span_45](start_span)<div class="swipe-indicator indicator-blur">模糊</div>[span_45](end_span)
-            [span_46](start_span)<div class="swipe-indicator indicator-easy">簡單</div>[span_46](end_span)
-            [span_47](start_span)<div style="display:flex; justify-content:space-between; font-size:0.8rem; color:#666;">[span_47](end_span)
-                [span_48](start_span)<span id="q-index">#0</span><span>剩餘: <span id="queue-count">0</span></span>[span_48](end_span)
+            <div class="swipe-indicator indicator-blur">模糊</div>
+            <div class="swipe-indicator indicator-easy">簡單</div>
+            <div style="display:flex; justify-content:space-between; font-size:0.8rem; color:#666;">
+                <span id="q-index">#0</span><span>剩餘: <span id="queue-count">0</span></span>
             </div>
-            [span_49](start_span)<div class="question-box" id="q-text"></div>[span_49](end_span)
-            [span_50](start_span)<div class="answer-box" id="a-text"></div>[span_50](end_span)
+            <div class="question-box" id="q-text"></div>
+            <div class="answer-box" id="a-text"></div>
             
-            [span_51](start_span)<div id="quiz-area" style="display:none; flex-direction:column; gap:10px; margin-top:10px;">[span_51](end_span)
-                [span_52](start_span)<textarea id="quiz-input" style="width:100%; height:120px; background:#111; color:#fff; border:1px solid #444; border-radius:8px; padding:10px;" placeholder="在此輸入答案..." onclick="event.stopPropagation()"></textarea>[span_52](end_span)
-                [span_53](start_span)<button id="quiz-submit-btn" style="padding:12px; background:var(--secondary-color); border:none; color:#fff; border-radius:8px; font-weight:bold;">下一題 / 交卷</button>[span_53](end_span)
+            <div id="quiz-area" style="display:none; flex-direction:column; gap:10px; margin-top:10px;">
+                <textarea id="quiz-input" style="width:100%; height:120px; background:#111; color:#fff; border:1px solid #444; border-radius:8px; padding:10px;" placeholder="在此輸入答案..." onclick="event.stopPropagation()"></textarea>
+                <button id="quiz-submit-btn" style="padding:12px; background:var(--secondary-color); border:none; color:#fff; border-radius:8px; font-weight:bold;">送出答案</button>
             </div>
 
-            [span_54](start_span)<div id="ctrl-bar" style="display:flex; justify-content:space-between; margin-top:auto; padding-top:10px; border-top:1px solid #333;">[span_54](end_span)
-                [span_55](start_span)<button class="tool-btn" onclick="event.stopPropagation(); undoAction()">↩ 復原</button>[span_55](end_span)
-                [span_56](start_span)<button class="tool-btn" id="mask-btn" onclick="event.stopPropagation(); toggleMask()">遮罩: Lv1</button>[span_56](end_span)
-                [span_57](start_span)<button class="tool-btn" onclick="event.stopPropagation(); handleAction('left')">➡ 跳過</button>[span_57](end_span)
+            <div id="ctrl-bar" style="display:flex; justify-content:space-between; margin-top:auto; padding-top:10px; border-top:1px solid #333;">
+                <button class="tool-btn" onclick="event.stopPropagation(); undoAction()">↩ 復原</button>
+                <button class="tool-btn" id="mask-btn" onclick="event.stopPropagation(); toggleMask()">遮罩: Lv1</button>
+                <button class="tool-btn" onclick="event.stopPropagation(); handleAction('left')">➡ 跳過</button>
             </div>
         </div>
     </div>
 
     <div id="modal-settings" class="modal"><div class="modal-content">
         <h3>📖 測驗範圍與設定</h3>
-        [span_58](start_span)<label>範圍: 起始 ~ 結束</label>[span_58](end_span)
-        [span_59](start_span)<div style="display:flex; gap:10px;">[span_59](end_span)
-            <input type="number" id="set-start" value="1">
-            <input type="number" id="set-end">
-        </div>
-        [span_60](start_span)<label>抽題數量</label>[span_60](end_span)
-        [span_61](start_span)<input type="number" id="set-count" value="10">[span_61](end_span)
-        [span_62](start_span)<div style="border-top:1px solid #333; margin:10px 0; padding-top:10px;">[span_62](end_span)
+        <label>範圍: 起始 ~ 結束</label>
+        <div style="display:flex; gap:10px;"><input type="number" id="set-start" value="1"><input type="number" id="set-end"></div>
+        <label>抽題數量</label><input type="number" id="set-count" value="10">
+        <div style="border-top:1px solid #333; margin:10px 0; padding-top:10px;">
             <label>難度佔比 (易 / 中 / 難 %)</label>
-            [span_63](start_span)<div style="display:flex; gap:5px;">[span_63](end_span)
-                <input type="number" id="set-easy" value="30">
-                <input type="number" id="set-mid" value="40">
-                <input type="number" id="set-hard" value="30">
-            </div>
+            <div style="display:flex; gap:5px;"><input type="number" id="set-easy" value="30"><input type="number" id="set-mid" value="40"><input type="number" id="set-hard" value="30"></div>
         </div>
-        [span_64](start_span)<label style="display:flex; align-items:center; gap:10px; margin:10px 0;">[span_64](end_span)
-            <input type="checkbox" id="set-quiz" checked> ✍️ 啟用小考評分模式
-        </label>
-        [span_65](start_span)<button onclick="applySettings()" style="width:100%; padding:12px; background:var(--primary-color); border:none; color:#fff; border-radius:6px; font-weight:bold; cursor:pointer;">開始測驗</button>[span_65](end_span)
-        [span_66](start_span)<button onclick="closeModal('modal-settings')" style="width:100%; background:none; border:none; color:#aaa; margin-top:10px; cursor:pointer;">取消</button>[span_66](end_span)
+        <label style="display:flex; align-items:center; gap:10px; margin:10px 0;"><input type="checkbox" id="set-quiz" checked> ✍️ 啟用小考評分模式</label>
+        <button onclick="applySettings()" style="width:100%; padding:12px; background:var(--primary-color); border:none; color:#fff; border-radius:6px; font-weight:bold;">開始測驗</button>
+        <button onclick="closeModal('modal-settings')" style="width:100%; background:none; border:none; color:#aaa; margin-top:10px;">取消</button>
     </div></div>
 
     <div id="modal-status" class="modal"><div class="modal-content">
         <h3>📊 熟悉度列表</h3>
-        [span_67](start_span)<div id="status-list-body" style="display:flex; flex-direction:column; gap:8px;"></div>[span_67](end_span)
-        [span_68](start_span)<button onclick="closeModal('modal-status')" style="width:100%; padding:10px; margin-top:15px;">關閉</button>[span_68](end_span)
+        <div id="status-list-body" style="display:flex; flex-direction:column; gap:8px;"></div>
+        <button onclick="closeModal('modal-status')" style="width:100%; padding:10px; margin-top:15px;">關閉</button>
     </div></div>
 
     <script type="module">
-        [span_69](start_span)import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";[span_69](end_span)
-        [span_70](start_span)import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";[span_70](end_span)
-        [span_71](start_span)import { getFirestore, collection, getDocs, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";[span_71](end_span)
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+        import { getFirestore, collection, getDocs, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
-        [span_72](start_span)const firebaseConfig = { apiKey: "AIzaSyC7MgXLY7SwH-gJW71d1jgpPmJwr--I6Mg", authDomain: "doctrine-flash.firebaseapp.com", projectId: "doctrine-flash", storageBucket: "doctrine-flash.firebasestorage.app", messagingSenderId: "433425348870", appId: "1:433425348870:web:3fd60e44e18d27e1ab8687" };[span_72](end_span)
-        [span_73](start_span)const app = initializeApp(firebaseConfig);[span_73](end_span)
-        [span_74](start_span)const auth = getAuth(app);[span_74](end_span)
-        [span_75](start_span)const db = getFirestore(app);[span_75](end_span)
+        const firebaseConfig = { apiKey: "AIzaSyC7MgXLY7SwH-gJW71d1jgpPmJwr--I6Mg", authDomain: "doctrine-flash.firebaseapp.com", projectId: "doctrine-flash", storageBucket: "doctrine-flash.firebasestorage.app", messagingSenderId: "433425348870", appId: "1:433425348870:web:3fd60e44e18d27e1ab8687" };
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
 
-        [span_76](start_span)let currentUser, banks = [], allCards = [], studyQueue = [], historyStack = [], progressMap = {};[span_76](end_span)
-        [span_77](start_span)let currentBankId = null, studyMode = 'smart', isQuizMode = false, maskLevel = 1, quizResults = [];[span_77](end_span)
-        [span_78](start_span)let touchX = 0, touchY = 0;[span_78](end_span)
-        
-        // --- 新增功能變數 ---
-        let isAdmin = false;
-        let isTypingMode = false;
+        let currentUser, banks = [], allCards = [], studyQueue = [], historyStack = [], progressMap = {};
+        let currentBankId = null, studyMode = 'smart', isQuizMode = false, isTypingMode = false, isAdmin = false, maskLevel = 1, quizResults = [];
+        let touchX = 0, touchY = 0;
+
+        // --- 初始化偵錯機制 ---
+        const hideLoader = () => document.getElementById('loader').style.display = 'none';
+        setTimeout(() => { if(document.getElementById('loader').style.display !== 'none') hideLoader(); }, 8000);
 
         onAuthStateChanged(auth, async user => {
-            [span_79](start_span)if(user) { currentUser = user; await loadBanks(); document.getElementById('loader').style.display = 'none'; }[span_79](end_span)
-            else { signInAnonymously(auth); [span_80](start_span)}
+            try {
+                if(user) { currentUser = user; await loadBanks(); }
+                else { await signInAnonymously(auth); }
+            } catch(e) { console.error(e); } finally { hideLoader(); }
         });
 
         async function loadBanks() {
-            const snap = await getDocs(collection(db, 'public_question_banks'));[span_80](end_span)
-            [span_81](start_span)banks = snap.docs.map(d => ({id: d.id, ...d.data()}));[span_81](end_span)
-            [span_82](start_span)renderSidebar();[span_82](end_span)
-            [span_83](start_span)const saved = JSON.parse(localStorage.getItem('df_progress') || '{}');[span_83](end_span)
-            [span_84](start_span)if(saved.bankId) selectBank(saved.bankId);[span_84](end_span)
-        }
-
-        function buildQueue() {
-            [span_85](start_span)if (!allCards.length) return;[span_85](end_span)
-            [span_86](start_span)if (studyMode === 'smart') {[span_86](end_span)
-                [span_87](start_span)const now = Date.now();[span_87](end_span)
-                [span_88](start_span)studyQueue = allCards.map((_, i) => i).filter(i => {[span_88](end_span)
-                    const p = progressMap[i];
-                    if (!p) return true;
-                    if (p.avoid) return false;
-                    [span_89](start_span)return !p.nextReview || p.nextReview <= now;[span_89](end_span)
-                });
-            [span_90](start_span)} else {[span_90](end_span)
-                [span_91](start_span)studyQueue = allCards.map((_, i) => i).filter(i => !progressMap[i]?.avoid);[span_91](end_span)
-            }
-            [span_92](start_span)renderCard();[span_92](end_span)
+            try {
+                const snap = await getDocs(collection(db, 'public_question_banks'));
+                banks = snap.docs.map(d => ({id: d.id, ...d.data()}));
+                renderSidebar();
+                const saved = JSON.parse(localStorage.getItem('df_progress') || '{}');
+                if(saved.bankId) selectBank(saved.bankId);
+            } catch(e) { console.error(e); }
         }
 
         window.selectBank = async (id) => {
-            [span_93](start_span)const b = banks.find(x => x.id === id);[span_93](end_span)
-            [span_94](start_span)if(!b) return;[span_94](end_span)
-            currentBankId = id; allCards = b.questions || [span_95](start_span)[];[span_95](end_span)
-            [span_96](start_span)localStorage.setItem('df_progress', JSON.stringify({ bankId: id }));[span_96](end_span)
-            [span_97](start_span)const pSnap = await getDoc(doc(db, 'users', currentUser.uid, 'progress', id));[span_97](end_span)
-            progressMap = pSnap.exists() ? pSnap.data().reviews || [span_98](start_span){} : {};[span_98](end_span)
-            [span_99](start_span)buildQueue();[span_99](end_span)
+            const b = banks.find(x => x.id === id);
+            if(!b) return;
+            currentBankId = id; allCards = b.questions || [];
+            localStorage.setItem('df_progress', JSON.stringify({ bankId: id }));
+            const pSnap = await getDoc(doc(db, 'users', currentUser.uid, 'progress', id));
+            progressMap = pSnap.exists() ? pSnap.data().reviews || {} : {};
+            buildQueue();
         };
 
-        function normalize(t) { 
-            [span_100](start_span)if(!t) return "";[span_100](end_span)
-            [span_101](start_span)return t.replace(/^[0-9]+[、\.]\s*/gm, '').replace(/^[(（]?[0-9一二三四五六七八九十]+[)）]?[、\.]?\s*/gm, '').replace(/[，。、；：？！\n\s()（）「」『』]/g, '');[span_101](end_span)
+        function buildQueue() {
+            if (!allCards.length) return;
+            studyQueue = allCards.map((_, i) => i).filter(i => {
+                if (progressMap[i]?.avoid) return false;
+                if (studyMode === 'smart') {
+                    const p = progressMap[i];
+                    return !p?.nextReview || p.nextReview <= Date.now();
+                }
+                return true;
+            });
+            renderCard();
         }
 
-        // --- 管理員鎖功能 ---
-        window.toggleAdmin = () => {
-            isAdmin = !isAdmin;
-            document.getElementById('lock-btn').innerText = isAdmin ? '🔓' : '🔒';
-            alert(isAdmin ? "管理員模式已開啟" : "管理員模式已關閉");
-        };
+        function normalize(t) { return t ? t.replace(/^[0-9]+[、\.]\s*/gm, '').replace(/^[(（]?[0-9一二三四五六七八九十]+[)）]?[、\.]?\s*/gm, '').replace(/[，。、；：？！\n\s()（）「」『』]/g, '') : ""; }
 
-        // --- 練打模式切換 ---
-        window.toggleTypingMode = () => {
-            if (isQuizMode) return alert("小考模式中無法切換練打");
-            isTypingMode = !isTypingMode;
-            const btn = document.getElementById('typing-btn');
-            btn.innerText = isTypingMode ? "⌨️ 練打: 開" : "⌨️ 練打: 關";
-            btn.style.borderColor = isTypingMode ? "var(--secondary-color)" : "#444";
-            renderCard();
-        };
-
-        window.openSettings = () => {
-            [span_102](start_span)if(!currentBankId) return alert("請先選擇題庫");[span_102](end_span)
-            [span_103](start_span)document.getElementById('set-end').value = allCards.length;[span_103](end_span)
-            [span_104](start_span)document.getElementById('modal-settings').classList.add('active');[span_104](end_span)
-        };
-
-        [span_105](start_span)window.closeModal = (id) => document.getElementById(id).classList.remove('active');[span_105](end_span)
-
-        window.applySettings = () => {
-            const start = parseInt(document.getElementById('set-start').value) || [span_106](start_span)1;[span_106](end_span)
-            [span_107](start_span)const end = parseInt(document.getElementById('set-end').value) || allCards.length;[span_107](end_span)
-            const count = parseInt(document.getElementById('set-count').value) || [span_108](start_span)10;[span_108](end_span)
-            [span_109](start_span)isQuizMode = document.getElementById('set-quiz').checked;[span_109](end_span)
-            if (isQuizMode) isTypingMode = false; // 優先級衝突處理
-
-            [span_110](start_span)let pool = allCards.map((_, i) => i).filter(i => (i+1) >= start && (i+1) <= end && !progressMap[i]?.avoid);[span_110](end_span)
-            [span_111](start_span)let easy = [], mid = [], hard = [];[span_111](end_span)
-            [span_112](start_span)pool.forEach(i => {[span_112](end_span)
-                const inv = progressMap[i]?.interval || 0;
-                if(inv === 0) hard.push(i); else if(inv <= 5) mid.push(i); else easy.push(i);
-            });
-            [span_113](start_span)const rE = (parseInt(document.getElementById('set-easy').value) || 0) / 100;[span_113](end_span)
-            [span_114](start_span)const rM = (parseInt(document.getElementById('set-mid').value) || 0) / 100;[span_114](end_span)
-            [span_115](start_span)const shuffle = (a) => a.sort(() => Math.random() - 0.5);[span_115](end_span)
-            studyQueue = [
-                ...shuffle(easy).slice(0, Math.floor(count * rE)), 
-                ...shuffle(mid).slice(0, Math.floor(count * rM)), 
-                ...shuffle(hard).slice(0, Math.max(0, count - Math.floor(count*rE) - Math.floor(count*rM)))
-            [span_116](start_span)];[span_116](end_span)
-            quizResults = [];
-            closeModal('modal-settings');
-            renderCard();
-        };
+        window.toggleAdmin = () => { isAdmin = !isAdmin; document.getElementById('lock-btn').innerText = isAdmin ? '🔓' : '🔒'; };
+        window.toggleTypingMode = () => { isTypingMode = !isTypingMode; document.getElementById('typing-btn').innerText = isTypingMode ? "⌨️ 練打: 開" : "⌨️ 練打: 關"; renderCard(); };
 
         function renderCard() {
-            [span_117](start_span)const card = document.getElementById('active-card');[span_117](end_span)
-            [span_118](start_span)const empty = document.getElementById('empty-state');[span_118](end_span)
-            if(studyQueue.length === 0) {
-                [span_119](start_span)card.style.display = 'none';[span_119](end_span)
-                [span_120](start_span)empty.style.display = 'block';[span_120](end_span)
-                if(isQuizMode && quizResults.length > 0) showFinalScore();
-                else empty.innerHTML = "🎉 任務完成";
+            const card = document.getElementById('active-card');
+            const empty = document.getElementById('empty-state');
+            if(!studyQueue.length) {
+                card.style.display = 'none'; empty.style.display = 'block';
+                empty.innerHTML = (isQuizMode && quizResults.length) ? "" : "🎉 任務完成";
+                if(isQuizMode && quizResults.length) showFinalScore();
                 return;
             }
-            [span_121](start_span)card.style.display = 'flex'; empty.style.display = 'none';[span_121](end_span)
-            [span_122](start_span)card.style.transform = 'translate(0,0)'; card.style.opacity = '1';[span_122](end_span)
-            
+            card.style.display = 'flex'; empty.style.display = 'none';
+            card.style.transform = 'translate(0,0)'; card.style.opacity = '1';
             const idx = studyQueue[0];
-            [span_123](start_span)document.getElementById('q-index').innerText = `#${idx + 1}`;[span_123](end_span)
-            [span_124](start_span)document.getElementById('q-text').innerText = allCards[idx].q;[span_124](end_span)
-            [span_125](start_span)document.getElementById('queue-count').innerText = studyQueue.length;[span_125](end_span)
+            document.getElementById('q-index').innerText = `#${idx + 1}`;
+            document.getElementById('q-text').innerText = allCards[idx].q;
+            document.getElementById('queue-count').innerText = studyQueue.length;
             
-            [span_126](start_span)const aDiv = document.getElementById('a-text');[span_126](end_span)
-            [span_127](start_span)const quizArea = document.getElementById('quiz-area');[span_127](end_span)
-            const submitBtn = document.getElementById('quiz-submit-btn');
+            const aDiv = document.getElementById('a-text');
+            const quizArea = document.getElementById('quiz-area');
+            const btn = document.getElementById('quiz-submit-btn');
 
             if(isQuizMode || isTypingMode) {
-                aDiv.innerText = isQuizMode ? [span_128](start_span)"(測驗模式中，請在下方輸入)" : "(練打模式中，請在下方輸入)";[span_128](end_span)
-                [span_129](start_span)quizArea.style.display = 'flex';[span_129](end_span)
-                [span_130](start_span)document.getElementById('ctrl-bar').style.display = 'none';[span_130](end_span)
-                [span_131](start_span)document.getElementById('quiz-input').value = '';[span_131](end_span)
-                
-                submitBtn.innerText = isQuizMode ? "下一題 / 交卷" : "送出答案";
-                submitBtn.onclick = (e) => {
-                    e.stopPropagation();
-                    isQuizMode ? nextQuizQuestion() : handleTypingSubmit();
-                };
+                aDiv.innerText = "(請輸入答案)"; quizArea.style.display = 'flex';
+                document.getElementById('ctrl-bar').style.display = 'none';
+                document.getElementById('quiz-input').value = '';
+                btn.onclick = (e) => { e.stopPropagation(); isQuizMode ? nextQuizQuestion() : handleTypingSubmit(); };
             } else {
-                [span_132](start_span)quizArea.style.display = 'none';[span_132](end_span)
-                [span_133](start_span)document.getElementById('ctrl-bar').style.display = 'flex';[span_133](end_span)
-                [span_134](start_span)aDiv.innerHTML = maskLevel === 3 ? allCards[idx].a : '<div class="mask-lv1"></div>';[span_134](end_span)
+                quizArea.style.display = 'none'; document.getElementById('ctrl-bar').style.display = 'flex';
+                aDiv.innerHTML = maskLevel === 3 ? allCards[idx].a : '<div class="mask-lv1"></div>';
             }
         }
-
-        window.handleFlip = () => { if(!isQuizMode && !isTypingMode) { maskLevel = 3; renderCard(); [span_135](start_span)} };[span_135](end_span)
-
-        window.nextQuizQuestion = () => {
-            [span_136](start_span)const idx = studyQueue.shift();[span_136](end_span)
-            [span_137](start_span)const input = document.getElementById('quiz-input').value;[span_137](end_span)
-            const correct = allCards[idx].a;
-            [span_138](start_span)const normC = normalize(correct);[span_138](end_span)
-            [span_139](start_span)const normI = normalize(input);[span_139](end_span)
-            [span_140](start_span)let wrong = Math.abs(normC.length - normI.length);[span_140](end_span)
-            for(let i=0; i < Math.min(normC.length, normI.length); i++) {
-                [span_141](start_span)if(normC[i] !== normI[i]) wrong++;[span_141](end_span)
-            }
-            [span_142](start_span)quizResults.push({ q: allCards[idx].q, ans: correct, user: input, score: Math.max(0, 10 - wrong), wrong });[span_142](end_span)
-            [span_143](start_span)renderCard();[span_143](end_span)
-        };
 
         window.handleTypingSubmit = () => {
             const idx = studyQueue[0];
-            const input = document.getElementById('quiz-input').value;
-            const correct = allCards[idx].a;
-            
-            if (normalize(input) === normalize(correct)) {
-                alert("正確！");
-                handleAction('right'); 
-            } else {
-                alert(`加油！\n正確答案：${correct}`);
-                handleAction('left');
-            }
+            const isCorrect = normalize(document.getElementById('quiz-input').value) === normalize(allCards[idx].a);
+            alert(isCorrect ? "✅ 正確！" : "❌ 錯誤，正確答案是：\n" + allCards[idx].a);
+            handleAction(isCorrect ? 'right' : 'left');
         };
 
-        function showFinalScore() {
-            [span_144](start_span)let total = quizResults.reduce((a, b) => a + b.score, 0);[span_144](end_span)
-            [span_145](start_span)let html = `<h2>測驗得分: ${Math.round(total)} 分</h2><div style="text-align:left; max-height:300px; overflow-y:auto;">`;[span_145](end_span)
-            quizResults.forEach(r => {
-                [span_146](start_span)html += `<div style="border-bottom:1px solid #333; padding:10px;"><b>Q: ${r.q}</b><br>錯字數: ${r.wrong}<br><span style="color:#888;">正解: ${r.ans}</span></div>`;[span_146](end_span)
-            });
-            [span_147](start_span)html += `</div><button onclick="location.reload()" style="margin-top:20px; padding:10px; cursor:pointer;">重新開始</button>`;[span_147](end_span)
-            [span_148](start_span)document.getElementById('empty-state').innerHTML = html;[span_148](end_span)
-        }
-
-        window.openStatusList = () => {
-            [span_149](start_span)const body = document.getElementById('status-list-body');[span_149](end_span)
-            [span_150](start_span)const now = Date.now();[span_150](end_span)
-            body.innerHTML = allCards.map((c, i) => {
-                const p = progressMap[i];
-                [span_151](start_span)let tag = '<span style="color:#888;">未練習</span>';[span_151](end_span)
-                [span_152](start_span)if(p?.avoid) tag = '<span style="color:#e57373;">🚫 避開</span>';[span_152](end_span)
-                else if(p?.nextReview) {
-                    [span_153](start_span)const diff = Math.ceil((p.nextReview - now) / (1000 * 3600 * 24));[span_153](end_span)
-                    tag = diff <= 0 ? [span_154](start_span)'<span style="color:#ffb74d;">需複習</span>' : `<span style="color:#4caf50;">${diff} 天後</span>`;[span_154](end_span)
-                }
-                [span_155](start_span)return `<div onclick="jumpToCard(${i})" style="display:flex; justify-content:space-between; background:#252525; padding:10px; border-radius:6px; cursor:pointer;"><span>#${i+1} ${c.q.substring(0,10)}...</span>${tag}</div>`;[span_155](end_span)
-            }).join('');
-            [span_156](start_span)document.getElementById('modal-status').classList.add('active');[span_156](end_span)
+        window.nextQuizQuestion = () => {
+            const idx = studyQueue.shift();
+            const input = document.getElementById('quiz-input').value;
+            const normC = normalize(allCards[idx].a), normI = normalize(input);
+            let wrong = Math.abs(normC.length - normI.length);
+            for(let i=0; i < Math.min(normC.length, normI.length); i++) if(normC[i] !== normI[i]) wrong++;
+            quizResults.push({ q: allCards[idx].q, ans: allCards[idx].a, user: input, score: Math.max(0, 10 - wrong), wrong });
+            renderCard();
         };
 
         window.handleAction = async (dir) => {
-            [span_157](start_span)const idx = studyQueue.shift();[span_157](end_span)
-            if (idx === undefined) return;
-            [span_158](start_span)historyStack.push(idx);[span_158](end_span)
+            const idx = studyQueue.shift(); if(idx === undefined) return;
+            historyStack.push(idx);
             if(studyMode === 'smart') {
-                let p = progressMap[idx] || [span_159](start_span){ interval: 0 };[span_159](end_span)
-                if(dir === 'right') p.interval = p.interval === 0 ? [span_160](start_span)1 : Math.ceil(p.interval * 2.5);[span_160](end_span)
-                [span_161](start_span)else p.interval = 0;[span_161](end_span)
-                [span_162](start_span)p.nextReview = Date.now() + (p.interval * 24 * 3600 * 1000);[span_162](end_span)
-                [span_163](start_span)progressMap[idx] = p;[span_163](end_span)
-                [span_164](start_span)await setDoc(doc(db, 'users', currentUser.uid, 'progress', currentBankId), { reviews: progressMap }, { merge: true });[span_164](end_span)
-                [span_165](start_span)if(dir !== 'right') studyQueue.push(idx);[span_165](end_span)
-            } else { 
-                [span_166](start_span)if(dir !== 'right') studyQueue.push(idx);[span_166](end_span)
+                let p = progressMap[idx] || { interval: 0 };
+                p.interval = (dir === 'right') ? (p.interval === 0 ? 1 : Math.ceil(p.interval * 2.5)) : 0;
+                p.nextReview = Date.now() + (p.interval * 86400000);
+                progressMap[idx] = p;
+                await setDoc(doc(db, 'users', currentUser.uid, 'progress', currentBankId), { reviews: progressMap }, { merge: true });
             }
-            [span_167](start_span)maskLevel = 1;[span_167](end_span)
-            [span_168](start_span)renderCard();[span_168](end_span)
+            if(dir !== 'right') studyQueue.push(idx);
+            maskLevel = 1; renderCard();
         };
 
-        [span_169](start_span)const cardElement = document.getElementById('active-card');[span_169](end_span)
-        [span_170](start_span)cardElement.addEventListener('touchstart', e => { touchX = e.touches[0].clientX; touchY = e.touches[0].clientY; cardElement.style.transition = 'none'; });[span_170](end_span)
-        cardElement.addEventListener('touchmove', e => {
-            [span_171](start_span)if(isQuizMode || isTypingMode) return;[span_171](end_span)
-            let dx = e.touches[0].clientX - touchX;
-            [span_172](start_span)cardElement.style.transform = `translate(${dx}px, 0) rotate(${dx*0.05}deg)`;[span_172](end_span)
-            [span_173](start_span)cardElement.classList.toggle('swipe-left', dx < -80); cardElement.classList.toggle('swipe-right', dx > 80);[span_173](end_span)
-        });
-        cardElement.addEventListener('touchend', e => {
-            [span_174](start_span)if(isQuizMode || isTypingMode) return;[span_174](end_span)
-            let dx = e.changedTouches[0].clientX - touchX;
-            [span_175](start_span)if(dx > 100) handleAction('right'); else if(dx < -100) handleAction('left');[span_175](end_span)
-            else { cardElement.style.transition = '0.3s'; cardElement.style.transform = 'translate(0,0)'; [span_176](start_span)}
-            cardElement.classList.remove('swipe-left', 'swipe-right');[span_176](end_span)
-        });
-
-        window.undoAction = () => {
-            [span_177](start_span)if (historyStack.length > 0) {[span_177](end_span)
-                [span_178](start_span)const prev = historyStack.pop();[span_178](end_span)
-                [span_179](start_span)studyQueue.unshift(prev);[span_179](end_span)
-                [span_180](start_span)renderCard();[span_180](end_span)
-            }
+        window.handleFlip = () => { if(!isQuizMode && !isTypingMode) { maskLevel = 3; renderCard(); } };
+        window.undoAction = () => { if(historyStack.length) { studyQueue.unshift(historyStack.pop()); renderCard(); } };
+        window.toggleMask = () => { maskLevel = (maskLevel === 1 ? 3 : 1); document.getElementById('mask-btn').innerText = `遮罩: Lv${maskLevel}`; renderCard(); };
+        window.setMode = (m) => { studyMode = m; buildQueue(); };
+        window.toggleSidebar = (s) => document.getElementById('sidebar').classList.toggle('active', s);
+        window.openSettings = () => { document.getElementById('set-end').value = allCards.length; document.getElementById('modal-settings').classList.add('active'); };
+        window.closeModal = (id) => document.getElementById(id).classList.remove('active');
+        window.applySettings = () => { isQuizMode = document.getElementById('set-quiz').checked; isTypingMode = false; buildQueue(); closeModal('modal-settings'); };
+        window.toggleAvoidCurrent = () => { const i = studyQueue[0]; if(i!==undefined) { progressMap[i] = {...progressMap[i], avoid: !progressMap[i]?.avoid}; buildQueue(); } };
+        window.openStatusList = () => { 
+            document.getElementById('status-list-body').innerHTML = allCards.map((c, i) => `<div onclick="jumpToCard(${i})" style="padding:10px; background:#252525; border-radius:6px; margin-bottom:5px;">#${i+1} ${c.q.substring(0,10)}...</div>`).join('');
+            document.getElementById('modal-settings').classList.remove('active'); document.getElementById('modal-status').classList.add('active');
         };
-
-        window.toggleMask = () => {
-            maskLevel = maskLevel === 1 ? [span_181](start_span)3 : 1;[span_181](end_span)
-            [span_182](start_span)document.getElementById('mask-btn').innerText = `遮罩: Lv${maskLevel}`;[span_182](end_span)
-            [span_183](start_span)renderCard();[span_183](end_span)
-        };
-
-        window.jumpToCard = (i) => { studyQueue = studyQueue.filter(x => x !== i); studyQueue.unshift(i); closeModal('modal-status'); renderCard(); [span_184](start_span)};[span_184](end_span)
-        window.setMode = (m) => { studyMode = m; buildQueue(); [span_185](start_span)};[span_185](end_span)
-        [span_186](start_span)window.toggleSidebar = (s) => document.getElementById('sidebar').classList.toggle('active', s);[span_186](end_span)
-        window.toggleAvoidCurrent = () => { 
-            [span_187](start_span)let i = studyQueue[0]; if(i === undefined) return;[span_187](end_span)
-            [span_188](start_span)progressMap[i] = { ...progressMap[i], avoid: !progressMap[i]?.avoid }; buildQueue();[span_188](end_span)
-        };
-        function renderSidebar() { document.getElementById('bank-list').innerHTML = banks.map(b => `<div onclick="selectBank('${b.id}'); toggleSidebar(false)" style="padding:15px; border-bottom:1px solid #333; cursor:pointer;">${b.title}</div>`).join(''); [span_189](start_span)}
+        window.jumpToCard = (i) => { studyQueue = studyQueue.filter(x => x !== i); studyQueue.unshift(i); closeModal('modal-status'); renderCard(); };
+        function renderSidebar() { document.getElementById('bank-list').innerHTML = banks.map(b => `<div onclick="selectBank('${b.id}'); toggleSidebar(false)" style="padding:15px; border-bottom:1px solid #333; cursor:pointer;">${b.title}</div>`).join(''); }
+        function showFinalScore() {
+            let total = quizResults.reduce((a, b) => a + b.score, 0);
+            document.getElementById('empty-state').innerHTML = `<h2>得分: ${Math.round(total)}</h2><button onclick="location.reload()">重測</button>`;
+        }
+        const card = document.getElementById('active-card');
+        card.addEventListener('touchstart', e => { touchX = e.touches[0].clientX; card.style.transition = 'none'; });
+        card.addEventListener('touchmove', e => { if(isQuizMode || isTypingMode) return; let dx = e.touches[0].clientX - touchX; card.style.transform = `translate(${dx}px, 0) rotate(${dx*0.05}deg)`; card.classList.toggle('swipe-left', dx < -80); card.classList.toggle('swipe-right', dx > 80); });
+        card.addEventListener('touchend', e => { if(isQuizMode || isTypingMode) return; let dx = e.changedTouches[0].clientX - touchX; if(dx > 100) handleAction('right'); else if(dx < -100) handleAction('left'); else { card.style.transition = '0.3s'; card.style.transform = 'translate(0,0)'; } card.classList.remove('swipe-left', 'swipe-right'); });
     </script>
 </body>
 </html>
