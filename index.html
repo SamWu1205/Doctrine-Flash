@@ -3,41 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>準則快憶通 SRS v2.3</title>
+    <title>準則快憶通 SRS v2.4</title>
     <style>
         :root {
-            --bg-color: #121212; --surface-color: #1e1e1e;
+            --bg-color: #121212;
+            --surface-color: #1e1e1e;
             --primary-color: #4caf50; --secondary-color: #2196f3;
             --danger-color: #e57373; --warning-color: #ffb74d;
             --text-main: #e0e0e0; --text-sub: #aaaaaa;
         }
         body {
-            background-color: var(--bg-color); color: var(--text-main);
-            font-family: -apple-system, sans-serif; margin: 0; padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: -apple-system, "Microsoft JhengHei", sans-serif; margin: 0; padding: 0;
             display: flex; flex-direction: column; height: 100vh; overflow: hidden;
         }
         #loader {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
             background: #121212; z-index: 999; display: flex; 
             flex-direction: column; justify-content: center; align-items: center;
         }
         .header { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px;
-            background: var(--surface-color); border-bottom: 1px solid #333; height: 50px; z-index: 20; }
-        .toolbar { display: flex; gap: 8px; overflow-x: auto; padding: 10px; background: #181818; border-bottom: 1px solid #333; }
-        .tool-btn { background: #333; color: #ccc; border: 1px solid #444; padding: 5px 12px; border-radius: 15px; font-size: 0.85rem; white-space: nowrap; cursor: pointer; }
-        .main-container { flex: 1; position: relative; display: flex; justify-content: center; align-items: center; overflow: hidden; perspective: 1000px; }
-        .card { width: 90%; max-width: 600px; height: 85%; background: var(--surface-color); border-radius: 16px; padding: 20px;
+            background: var(--surface-color); border-bottom: 1px solid #333; height: 50px; z-index: 20;
+        }
+        .toolbar { display: flex; gap: 8px; overflow-x: auto; padding: 10px; background: #181818;
+            border-bottom: 1px solid #333; }
+        .tool-btn { background: #333; color: #ccc;
+            border: 1px solid #444; padding: 5px 12px; border-radius: 15px; font-size: 0.85rem; white-space: nowrap; cursor: pointer;
+        }
+        .main-container { flex: 1; position: relative; display: flex; justify-content: center; align-items: center;
+            overflow: hidden; perspective: 1000px; }
+        .card { width: 90%; max-width: 600px; height: 85%;
+            background: var(--surface-color); border-radius: 16px; padding: 20px;
             box-shadow: 0 10px 20px rgba(0,0,0,0.3); display: flex; flex-direction: column; position: absolute;
-            transition: transform 0.3s ease, opacity 0.3s ease; border: 1px solid #333; touch-action: none; }
+            transition: transform 0.3s ease, opacity 0.3s ease; border: 1px solid #333; touch-action: none;
+            box-sizing: border-box;
+        }
         .question-box { font-size: 1.3rem; font-weight: bold; color: #81c784; margin-bottom: 20px; }
         .answer-box { font-size: 1.15rem; line-height: 1.8; flex: 1; overflow-y: auto; white-space: pre-wrap; position: relative; }
-        .mask-lv1 { display: inline-block; width: 100%; height: 60px; background: #2a2a2a; border-radius: 8px; border: 1px dashed #444; }
+        
+        /* 批改樣式 */
+        .diff-del { color: #ff5252; text-decoration: line-through; font-weight: bold; margin: 0 2px; }
+        .diff-ins { color: #4caf50; font-weight: bold; margin: 0 2px; }
+        .diff-ins::before { content: '('; }
+        .diff-ins::after { content: ')'; }
+        .result-title { font-size: 1.2rem; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+
         .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 200; display: none; align-items: center; justify-content: center; }
         .modal.active { display: flex; }
         .modal-content { background: #1e1e1e; padding: 20px; border-radius: 12px; width: 90%; max-width: 500px; max-height: 85vh; overflow-y: auto; border: 1px solid #444; }
-        input[type="number"] { width: 100%; padding: 10px; background: #2a2a2a; border: 1px solid #444; color: #fff; border-radius: 6px; margin: 5px 0; box-sizing: border-box; }
+        
+        input[type="number"], textarea { width: 100%; padding: 10px; background: #2a2a2a; border: 1px solid #444; color: #fff; border-radius: 6px; margin: 5px 0; box-sizing: border-box; }
         .sidebar { position: fixed; top: 0; left: 0; width: 85%; max-width: 300px; height: 100%; background: #1e1e1e; z-index: 210; transform: translateX(-100%); transition: 0.3s; border-right: 1px solid #333; }
         .sidebar.active { transform: translateX(0); }
+        .primary-btn { width: 100%; padding: 12px; background: var(--primary-color); border: none; color: #fff; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -81,8 +101,8 @@
             <div class="answer-box" id="a-text"></div>
             
             <div id="quiz-area" style="display:none; flex-direction:column; gap:10px; margin-top:10px;">
-                <textarea id="quiz-input" style="width:100%; height:120px; background:#111; color:#fff; border:1px solid #444; border-radius:8px; padding:10px;" placeholder="在此輸入答案..." onclick="event.stopPropagation()"></textarea>
-                <button id="quiz-submit-btn" style="padding:12px; background:var(--secondary-color); border:none; color:#fff; border-radius:8px; font-weight:bold;">送出答案</button>
+                <textarea id="quiz-input" style="height:120px;" placeholder="在此輸入答案..." onclick="event.stopPropagation()"></textarea>
+                <button id="quiz-submit-btn" style="padding:12px; background:var(--secondary-color); border:none; color:#fff; border-radius:8px; font-weight:bold; cursor:pointer;">送出答案</button>
             </div>
 
             <div id="ctrl-bar" style="display:flex; justify-content:space-between; margin-top:auto; padding-top:10px; border-top:1px solid #333;">
@@ -90,6 +110,15 @@
                 <button class="tool-btn" id="mask-btn" onclick="event.stopPropagation(); toggleMask()">遮罩: Lv1</button>
                 <button class="tool-btn" onclick="event.stopPropagation(); handleAction('left')">➡ 跳過</button>
             </div>
+        </div>
+    </div>
+
+    <div id="modal-result" class="modal">
+        <div class="modal-content">
+            <div id="result-status" class="result-title"></div>
+            <div style="color: #888; font-size: 0.9rem; margin-bottom: 5px;">比對結果（紅色為錯誤/多寫，綠色為應修正內容）：</div>
+            <div id="diff-display" style="background:#111; padding:15px; border-radius:8px; line-height:2; margin-bottom:15px; border:1px solid #333;"></div>
+            <button class="primary-btn" onclick="closeResultModal()">下第一步</button>
         </div>
     </div>
 
@@ -113,7 +142,7 @@
         <label style="display:flex; align-items:center; gap:10px; margin:10px 0;">
             <input type="checkbox" id="set-quiz" checked> ✍️ 啟用小考評分模式
         </label>
-        <button onclick="applySettings()" style="width:100%; padding:12px; background:var(--primary-color); border:none; color:#fff; border-radius:6px; font-weight:bold;">開始測驗</button>
+        <button onclick="applySettings()" class="primary-btn">開始測驗</button>
         <button onclick="closeModal('modal-settings')" style="width:100%; background:none; border:none; color:#aaa; margin-top:10px;">取消</button>
     </div></div>
 
@@ -142,23 +171,16 @@
         const db = getFirestore(app);
 
         let currentUser, banks = [], allCards = [], studyQueue = [], historyStack = [], progressMap = {};
-        let currentBankId = null, studyMode = 'smart', isQuizMode = false, isTypingMode = false, isAdmin = false, maskLevel = 1, quizResults = [];
-        let touchX = 0;
+        let currentBankId = null, studyMode = 'smart', isQuizMode = false, isTypingMode = false, isAdmin = false, maskLevel = 1;
+        let touchX = 0, lastIsCorrect = false;
 
-        // --- 核心初始化 ---
         const logStatus = (txt) => document.getElementById('status-text').innerText = txt;
         const hideLoader = () => document.getElementById('loader').style.display = 'none';
 
         onAuthStateChanged(auth, async user => {
             try {
-                if(user) {
-                    currentUser = user;
-                    logStatus("讀取題庫中...");
-                    await loadBanks();
-                } else {
-                    logStatus("匿名登入中...");
-                    await signInAnonymously(auth);
-                }
+                if(user) { currentUser = user; await loadBanks(); }
+                else { await signInAnonymously(auth); }
             } catch(e) { console.error(e); } finally { hideLoader(); }
         });
 
@@ -182,7 +204,6 @@
             buildQueue();
         };
 
-        // --- 抽題邏輯 ---
         function buildQueue() {
             if (!allCards.length) return;
             studyQueue = allCards.map((_, i) => i).filter(i => {
@@ -196,9 +217,66 @@
             renderCard();
         }
 
-        function normalize(t) { return t ? t.replace(/[，。、；：？！\n\s()（）「」『』]/g, '').replace(/^[0-9]+[、\.]\s*/gm, '') : ""; }
+        // --- 批改邏輯優化 ---
+        // 移除項次(如 1. 2.)、標點符號與空白
+        function normalize(t) { 
+            if(!t) return "";
+            return t.replace(/^[0-9]+[、\.\s]*/gm, '') // 移除每行開頭的 1. 或 1、
+                    .replace(/[，。、；：？！\n\s()（）「」『』\. \-]/g, ''); // 移除所有標點與空白
+        }
 
-        // --- 管理員鎖 (密碼 1001) ---
+        // 核心差異比對演算法 (簡單字串比對)
+        function generateDiff(input, target) {
+            const cleanInput = normalize(input);
+            const cleanTarget = normalize(target);
+            
+            let resultHtml = "";
+            let i = 0, j = 0;
+
+            while (i < cleanInput.length || j < cleanTarget.length) {
+                if (cleanInput[i] === cleanTarget[j]) {
+                    resultHtml += cleanTarget[j] || "";
+                    i++; j++;
+                } else {
+                    // 發現不一致，尋找下一個匹配點以決定是「多寫」還是「寫錯」
+                    let nextMatchTarget = cleanTarget.indexOf(cleanInput[i], j);
+                    
+                    if (i < cleanInput.length && (nextMatchTarget === -1 || nextMatchTarget > j + 5)) {
+                        // 使用者寫了目標沒有的字 (多寫或寫錯)
+                        resultHtml += `<del class="diff-del">${cleanInput[i]}</del>`;
+                        i++;
+                    } else {
+                        // 使用者漏寫了目標的字
+                        resultHtml += `<ins class="diff-ins">${cleanTarget[j]}</ins>`;
+                        j++;
+                    }
+                }
+            }
+            return resultHtml;
+        }
+
+        window.handleTypingSubmit = () => {
+            const idx = studyQueue[0];
+            const userInput = document.getElementById('quiz-input').value;
+            const targetAnswer = allCards[idx].a;
+            
+            const isCorrect = normalize(userInput) === normalize(targetAnswer);
+            lastIsCorrect = isCorrect;
+
+            // 顯示視覺化結果 Modal
+            const statusEl = document.getElementById('result-status');
+            statusEl.innerHTML = isCorrect ? "✅ 完美正確！" : "❌ 內容有誤";
+            statusEl.style.color = isCorrect ? "var(--primary-color)" : "var(--danger-color)";
+            
+            document.getElementById('diff-display').innerHTML = isCorrect ? targetAnswer : generateDiff(userInput, targetAnswer);
+            document.getElementById('modal-result').classList.add('active');
+        };
+
+        window.closeResultModal = () => {
+            document.getElementById('modal-result').classList.remove('active');
+            handleAction(lastIsCorrect ? 'right' : 'left');
+        };
+
         window.toggleAdmin = () => {
             if (!isAdmin) {
                 const pass = prompt("請輸入管理員密碼:");
@@ -206,16 +284,18 @@
                     isAdmin = true;
                     document.getElementById('lock-btn').innerText = '🔓';
                     alert("管理員模式已開啟");
-                } else {
-                    alert("密碼錯誤");
-                }
+                } else { alert("密碼錯誤"); }
             } else {
                 isAdmin = false;
                 document.getElementById('lock-btn').innerText = '🔒';
             }
         };
 
-        window.toggleTypingMode = () => { isTypingMode = !isTypingMode; document.getElementById('typing-btn').innerText = isTypingMode ? "⌨️ 練打: 開" : "⌨️ 練打: 關"; renderCard(); };
+        window.toggleTypingMode = () => { 
+            isTypingMode = !isTypingMode;
+            document.getElementById('typing-btn').innerText = isTypingMode ? "⌨️ 練打: 開" : "⌨️ 練打: 關"; 
+            renderCard(); 
+        };
 
         function renderCard() {
             const card = document.getElementById('active-card');
@@ -232,34 +312,22 @@
             
             const aDiv = document.getElementById('a-text');
             const quizArea = document.getElementById('quiz-area');
-            const btn = document.getElementById('quiz-submit-btn');
-
             if(isQuizMode || isTypingMode) {
-                aDiv.innerText = "(請輸入答案)"; quizArea.style.display = 'flex';
+                aDiv.innerText = "(請輸入答案)";
+                quizArea.style.display = 'flex';
                 document.getElementById('ctrl-bar').style.display = 'none';
                 document.getElementById('quiz-input').value = '';
-                btn.onclick = (e) => { e.stopPropagation(); isQuizMode ? nextQuizQuestion() : handleTypingSubmit(); };
+                document.getElementById('quiz-submit-btn').onclick = (e) => { e.stopPropagation(); handleTypingSubmit(); };
             } else {
-                quizArea.style.display = 'none'; document.getElementById('ctrl-bar').style.display = 'flex';
+                quizArea.style.display = 'none';
+                document.getElementById('ctrl-bar').style.display = 'flex';
                 aDiv.innerHTML = maskLevel === 3 ? allCards[idx].a : '<div class="mask-lv1"></div>';
             }
         }
 
-        window.handleTypingSubmit = () => {
-            const idx = studyQueue[0];
-            const isCorrect = normalize(document.getElementById('quiz-input').value) === normalize(allCards[idx].a);
-            alert(isCorrect ? "✅ 正確！" : "❌ 錯誤，正確答案是：\n" + allCards[idx].a);
-            handleAction(isCorrect ? 'right' : 'left');
-        };
-
-        window.nextQuizQuestion = () => {
-            const idx = studyQueue.shift();
-            // 小考比對邏輯簡化
-            renderCard();
-        };
-
         window.handleAction = async (dir) => {
-            const idx = studyQueue.shift(); if(idx === undefined) return;
+            const idx = studyQueue.shift();
+            if(idx === undefined) return;
             historyStack.push(idx);
             if(studyMode === 'smart') {
                 let p = progressMap[idx] || { interval: 0 };
@@ -278,7 +346,6 @@
         window.setMode = (m) => { studyMode = m; buildQueue(); };
         window.toggleSidebar = (s) => document.getElementById('sidebar').classList.toggle('active', s);
         window.closeModal = (id) => document.getElementById(id).classList.remove('active');
-        
         window.openSettings = () => {
             if(!currentBankId) return alert("請先選擇題庫");
             document.getElementById('set-end').value = allCards.length;
@@ -290,32 +357,26 @@
             const end = parseInt(document.getElementById('set-end').value) || allCards.length;
             const count = parseInt(document.getElementById('set-count').value) || 10;
             isQuizMode = document.getElementById('set-quiz').checked;
-
             let pool = allCards.map((_, i) => i).filter(i => (i+1) >= start && (i+1) <= end && !progressMap[i]?.avoid);
-            
-            // 根據難度佔比抽題
             let easy = [], mid = [], hard = [];
             pool.forEach(i => {
                 const inv = progressMap[i]?.interval || 0;
                 if(inv === 0) hard.push(i); else if(inv <= 5) mid.push(i); else easy.push(i);
             });
-
             const rE = (parseInt(document.getElementById('set-easy').value) || 0) / 100;
             const rM = (parseInt(document.getElementById('set-mid').value) || 0) / 100;
             const shuffle = (a) => a.sort(() => Math.random() - 0.5);
-
             studyQueue = [
                 ...shuffle(easy).slice(0, Math.floor(count * rE)), 
                 ...shuffle(mid).slice(0, Math.floor(count * rM)), 
                 ...shuffle(hard).slice(0, Math.max(0, count - Math.floor(count*rE) - Math.floor(count*rM)))
             ];
-            
             closeModal('modal-settings');
             renderCard();
         };
 
         window.openStatusList = () => { 
-            document.getElementById('status-list-body').innerHTML = allCards.map((c, i) => `<div onclick="jumpToCard(${i})" style="padding:10px; background:#252525; border-radius:6px; margin-bottom:5px;">#${i+1} ${c.q.substring(0,10)}...</div>`).join('');
+            document.getElementById('status-list-body').innerHTML = allCards.map((c, i) => `<div onclick="jumpToCard(${i})" style="padding:10px; background:#252525; border-radius:6px; margin-bottom:5px; cursor:pointer;">#${i+1} ${c.q.substring(0,10)}...</div>`).join('');
             document.getElementById('modal-status').classList.add('active');
         };
 
@@ -323,7 +384,6 @@
         window.toggleAvoidCurrent = () => { const i = studyQueue[0]; if(i!==undefined) { progressMap[i] = {...progressMap[i], avoid: !progressMap[i]?.avoid}; buildQueue(); } };
         function renderSidebar() { document.getElementById('bank-list').innerHTML = banks.map(b => `<div onclick="selectBank('${b.id}'); toggleSidebar(false)" style="padding:15px; border-bottom:1px solid #333; cursor:pointer;">${b.title}</div>`).join(''); }
 
-        // 觸控事件
         const cardElement = document.getElementById('active-card');
         cardElement.addEventListener('touchstart', e => { touchX = e.touches[0].clientX; cardElement.style.transition = 'none'; });
         cardElement.addEventListener('touchend', e => {
