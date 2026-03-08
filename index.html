@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>準則快憶通 SRS v2.4</title>
+    <title>準則快憶通 SRS v2.5</title>
     <style>
         :root {
             --bg-color: #121212;
@@ -34,30 +34,47 @@
         }
         .main-container { flex: 1; position: relative; display: flex; justify-content: center; align-items: center;
             overflow: hidden; perspective: 1000px; }
-        .card { width: 90%; max-width: 600px; height: 85%;
+        .card { width: 95%; max-width: 600px; height: 85%;
             background: var(--surface-color); border-radius: 16px; padding: 20px;
             box-shadow: 0 10px 20px rgba(0,0,0,0.3); display: flex; flex-direction: column; position: absolute;
             transition: transform 0.3s ease, opacity 0.3s ease; border: 1px solid #333; touch-action: none;
             box-sizing: border-box;
         }
         .question-box { font-size: 1.3rem; font-weight: bold; color: #81c784; margin-bottom: 20px; }
-        .answer-box { font-size: 1.15rem; line-height: 1.8; flex: 1; overflow-y: auto; white-space: pre-wrap; position: relative; }
+        .answer-box { font-size: 1.15rem; line-height: 1.8; flex: 1; overflow-y: auto; white-space: pre-wrap;
+            position: relative; }
         
-        /* 批改樣式 */
+        /* 練打輸入框優化 */
+        #quiz-input { 
+            font-size: 1.4rem !important; 
+            line-height: 1.6; 
+            height: 150px;
+            font-family: inherit;
+        }
+
         .diff-del { color: #ff5252; text-decoration: line-through; font-weight: bold; margin: 0 2px; }
         .diff-ins { color: #4caf50; font-weight: bold; margin: 0 2px; }
         .diff-ins::before { content: '('; }
         .diff-ins::after { content: ')'; }
-        .result-title { font-size: 1.2rem; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
-
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 200; display: none; align-items: center; justify-content: center; }
-        .modal.active { display: flex; }
-        .modal-content { background: #1e1e1e; padding: 20px; border-radius: 12px; width: 90%; max-width: 500px; max-height: 85vh; overflow-y: auto; border: 1px solid #444; }
         
-        input[type="number"], textarea { width: 100%; padding: 10px; background: #2a2a2a; border: 1px solid #444; color: #fff; border-radius: 6px; margin: 5px 0; box-sizing: border-box; }
-        .sidebar { position: fixed; top: 0; left: 0; width: 85%; max-width: 300px; height: 100%; background: #1e1e1e; z-index: 210; transform: translateX(-100%); transition: 0.3s; border-right: 1px solid #333; }
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); z-index: 200; display: none; align-items: center; justify-content: center;
+        }
+        .modal.active { display: flex; }
+        .modal-content { background: #1e1e1e; padding: 20px; border-radius: 12px; width: 90%; max-width: 500px;
+            max-height: 85vh; overflow-y: auto; border: 1px solid #444; }
+        
+        input[type="number"], textarea { width: 100%;
+            padding: 12px; background: #2a2a2a; border: 1px solid #444; color: #fff; border-radius: 6px; margin: 8px 0; box-sizing: border-box;
+        }
+        .sidebar { position: fixed; top: 0; left: 0; width: 85%; max-width: 300px;
+            height: 100%; background: #1e1e1e; z-index: 210; transform: translateX(-100%); transition: 0.3s; border-right: 1px solid #333;
+        }
         .sidebar.active { transform: translateX(0); }
-        .primary-btn { width: 100%; padding: 12px; background: var(--primary-color); border: none; color: #fff; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .primary-btn { width: 100%; padding: 12px; background: var(--primary-color); border: none; color: #fff;
+            border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        
+        .admin-tag { background: #ff9800; color: #000; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -94,14 +111,21 @@
     <div class="main-container">
         <div id="empty-state" style="display:none; text-align:center; padding:20px; width:100%;">🎉 任務完成</div>
         <div class="card" id="active-card" onclick="handleFlip()">
-            <div style="display:flex; justify-content:space-between; font-size:0.8rem; color:#666;">
-                <span id="q-index">#0</span><span>剩餘: <span id="queue-count">0</span></span>
+            <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.8rem; color:#666; margin-bottom:10px;">
+                <div>
+                    <span id="q-index">#0</span>
+                    <span id="admin-indicator" style="display:none;"> | <span class="admin-tag">ADMIN</span></span>
+                </div>
+                <div>
+                    <button id="edit-card-btn" onclick="event.stopPropagation(); openEditModal()" style="display:none; background:none; border:none; color:#2196f3; font-size:1.1rem; cursor:pointer; margin-right:10px;">✏️</button>
+                    <span>剩餘: <span id="queue-count">0</span></span>
+                </div>
             </div>
             <div class="question-box" id="q-text"></div>
             <div class="answer-box" id="a-text"></div>
             
             <div id="quiz-area" style="display:none; flex-direction:column; gap:10px; margin-top:10px;">
-                <textarea id="quiz-input" style="height:120px;" placeholder="在此輸入答案..." onclick="event.stopPropagation()"></textarea>
+                <textarea id="quiz-input" placeholder="在此輸入答案..." onclick="event.stopPropagation()"></textarea>
                 <button id="quiz-submit-btn" style="padding:12px; background:var(--secondary-color); border:none; color:#fff; border-radius:8px; font-weight:bold; cursor:pointer;">送出答案</button>
             </div>
 
@@ -113,10 +137,20 @@
         </div>
     </div>
 
+    <div id="modal-edit" class="modal"><div class="modal-content">
+        <h3>✏️ 編輯題目與答案</h3>
+        <label>題目內容</label>
+        <textarea id="edit-q" style="height:80px;"></textarea>
+        <label>完整答案</label>
+        <textarea id="edit-a" style="height:180px;"></textarea>
+        <button onclick="saveCardEdit()" class="primary-btn">💾 儲存修改</button>
+        <button onclick="closeModal('modal-edit')" style="width:100%; background:none; border:none; color:#aaa; margin-top:10px;">取消</button>
+    </div></div>
+
     <div id="modal-result" class="modal">
         <div class="modal-content">
-            <div id="result-status" class="result-title"></div>
-            <div style="color: #888; font-size: 0.9rem; margin-bottom: 5px;">比對結果（紅色為錯誤/多寫，綠色為應修正內容）：</div>
+            <div id="result-status" class="result-title" style="font-size:1.2rem; margin-bottom:15px; display:flex; align-items:center; gap:8px;"></div>
+            <div style="color: #888; font-size: 0.9rem; margin-bottom: 5px;">比對結果：</div>
             <div id="diff-display" style="background:#111; padding:15px; border-radius:8px; line-height:2; margin-bottom:15px; border:1px solid #333;"></div>
             <button class="primary-btn" onclick="closeResultModal()">下第一步</button>
         </div>
@@ -132,11 +166,11 @@
         <label>抽題數量</label>
         <input type="number" id="set-count" value="10">
         <div style="border-top:1px solid #333; margin:10px 0; padding-top:10px;">
-            <label>難度佔比 (易 / 中 / 難 %)</label>
+            <label>難度佔比 (%)</label>
             <div style="display:flex; gap:5px;">
-                <input type="number" id="set-easy" value="30">
-                <input type="number" id="set-mid" value="40">
-                <input type="number" id="set-hard" value="30">
+                <input type="number" id="set-easy" value="30" title="易">
+                <input type="number" id="set-mid" value="40" title="中">
+                <input type="number" id="set-hard" value="30" title="難">
             </div>
         </div>
         <label style="display:flex; align-items:center; gap:10px; margin:10px 0;">
@@ -149,7 +183,7 @@
     <div id="modal-status" class="modal"><div class="modal-content">
         <h3>📊 熟悉度列表</h3>
         <div id="status-list-body" style="display:flex; flex-direction:column; gap:8px;"></div>
-        <button onclick="closeModal('modal-status')" style="width:100%; padding:10px; margin-top:15px;">關閉</button>
+        <button onclick="closeModal('modal-status')" class="primary-btn">關閉</button>
     </div></div>
 
     <script type="module">
@@ -217,36 +251,25 @@
             renderCard();
         }
 
-        // --- 批改邏輯優化 ---
-        // 移除項次(如 1. 2.)、標點符號與空白
         function normalize(t) { 
             if(!t) return "";
-            return t.replace(/^[0-9]+[、\.\s]*/gm, '') // 移除每行開頭的 1. 或 1、
-                    .replace(/[，。、；：？！\n\s()（）「」『』\. \-]/g, ''); // 移除所有標點與空白
+            return t.replace(/^[0-9]+[、\.\s]*/gm, '').replace(/[，。、；：？！\n\s()（）「」『』\. \-]/g, '');
         }
 
-        // 核心差異比對演算法 (簡單字串比對)
         function generateDiff(input, target) {
             const cleanInput = normalize(input);
             const cleanTarget = normalize(target);
-            
-            let resultHtml = "";
-            let i = 0, j = 0;
-
+            let resultHtml = "", i = 0, j = 0;
             while (i < cleanInput.length || j < cleanTarget.length) {
                 if (cleanInput[i] === cleanTarget[j]) {
                     resultHtml += cleanTarget[j] || "";
                     i++; j++;
                 } else {
-                    // 發現不一致，尋找下一個匹配點以決定是「多寫」還是「寫錯」
                     let nextMatchTarget = cleanTarget.indexOf(cleanInput[i], j);
-                    
                     if (i < cleanInput.length && (nextMatchTarget === -1 || nextMatchTarget > j + 5)) {
-                        // 使用者寫了目標沒有的字 (多寫或寫錯)
                         resultHtml += `<del class="diff-del">${cleanInput[i]}</del>`;
                         i++;
                     } else {
-                        // 使用者漏寫了目標的字
                         resultHtml += `<ins class="diff-ins">${cleanTarget[j]}</ins>`;
                         j++;
                     }
@@ -259,15 +282,11 @@
             const idx = studyQueue[0];
             const userInput = document.getElementById('quiz-input').value;
             const targetAnswer = allCards[idx].a;
-            
             const isCorrect = normalize(userInput) === normalize(targetAnswer);
             lastIsCorrect = isCorrect;
-
-            // 顯示視覺化結果 Modal
             const statusEl = document.getElementById('result-status');
             statusEl.innerHTML = isCorrect ? "✅ 完美正確！" : "❌ 內容有誤";
             statusEl.style.color = isCorrect ? "var(--primary-color)" : "var(--danger-color)";
-            
             document.getElementById('diff-display').innerHTML = isCorrect ? targetAnswer : generateDiff(userInput, targetAnswer);
             document.getElementById('modal-result').classList.add('active');
         };
@@ -283,11 +302,44 @@
                 if (pass === "1001") {
                     isAdmin = true;
                     document.getElementById('lock-btn').innerText = '🔓';
-                    alert("管理員模式已開啟");
+                    alert("管理員模式已開啟，您可以編輯題目內容。");
                 } else { alert("密碼錯誤"); }
             } else {
                 isAdmin = false;
                 document.getElementById('lock-btn').innerText = '🔒';
+            }
+            renderCard(); // 刷新卡片以顯示/隱藏編輯按鈕
+        };
+
+        // --- 編輯功能實作 ---
+        window.openEditModal = () => {
+            const idx = studyQueue[0];
+            if (idx === undefined) return;
+            document.getElementById('edit-q').value = allCards[idx].q;
+            document.getElementById('edit-a').value = allCards[idx].a;
+            document.getElementById('modal-edit').classList.add('active');
+        };
+
+        window.saveCardEdit = async () => {
+            const idx = studyQueue[0];
+            const newQ = document.getElementById('edit-q').value;
+            const newA = document.getElementById('edit-a').value;
+
+            allCards[idx].q = newQ;
+            allCards[idx].a = newA;
+
+            try {
+                // 更新 Firebase 資料庫
+                await setDoc(doc(db, 'public_question_banks', currentBankId), { 
+                    questions: allCards 
+                }, { merge: true });
+                
+                alert("題目已更新！");
+                closeModal('modal-edit');
+                renderCard();
+            } catch (e) {
+                console.error(e);
+                alert("儲存失敗，請檢查權限或網路連線。");
             }
         };
 
@@ -300,18 +352,28 @@
         function renderCard() {
             const card = document.getElementById('active-card');
             const empty = document.getElementById('empty-state');
+            const adminInd = document.getElementById('admin-indicator');
+            const editBtn = document.getElementById('edit-card-btn');
+
             if(!studyQueue.length) {
-                card.style.display = 'none'; empty.style.display = 'block';
+                card.style.display = 'none';
+                empty.style.display = 'block';
                 return;
             }
-            card.style.display = 'flex'; empty.style.display = 'none';
+            card.style.display = 'flex';
+            empty.style.display = 'none';
+
+            // 管理員介面切換
+            adminInd.style.display = isAdmin ? 'inline' : 'none';
+            editBtn.style.display = isAdmin ? 'block' : 'none';
+
             const idx = studyQueue[0];
             document.getElementById('q-index').innerText = `#${idx + 1}`;
             document.getElementById('q-text').innerText = allCards[idx].q;
             document.getElementById('queue-count').innerText = studyQueue.length;
-            
             const aDiv = document.getElementById('a-text');
             const quizArea = document.getElementById('quiz-area');
+            
             if(isQuizMode || isTypingMode) {
                 aDiv.innerText = "(請輸入答案)";
                 quizArea.style.display = 'flex';
@@ -321,7 +383,7 @@
             } else {
                 quizArea.style.display = 'none';
                 document.getElementById('ctrl-bar').style.display = 'flex';
-                aDiv.innerHTML = maskLevel === 3 ? allCards[idx].a : '<div class="mask-lv1"></div>';
+                aDiv.innerHTML = maskLevel === 3 ? allCards[idx].a : '<div style="background:#333; height:20px; width:100px; border-radius:4px;"></div>';
             }
         }
 
